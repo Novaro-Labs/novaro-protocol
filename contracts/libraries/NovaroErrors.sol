@@ -7,5 +7,6 @@ library NovaroErrors {
     error TransferNotAllowed();
     error EmptyInterval();
     error IntervalNotSet();
+    error AddressHasToken();
 
 }
