@@ -52,4 +52,10 @@ contract StakingPool is IStakingPool {
         userStakeData.chainId = stakeRequest.chainId;
         userStakeData.amount = stakeRequest.amount;
     }
+
+    //=================getter functions=================
+    function getStakeData(address owner) external view returns (uint256 stakedAmount,uint256 chainId) {
+        stakedAmount = stakeData[owner].amount;
+        chainId = stakeData[owner].chainId;
+    }
 }
