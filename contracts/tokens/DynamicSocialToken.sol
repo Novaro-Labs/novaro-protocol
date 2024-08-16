@@ -167,4 +167,19 @@ contract DynamicSocialToken is
     {
         return ERC721URIStorageUpgradeable.supportsInterface(interfaceId);
     }
+
+    //=================getter functions=================
+    function getDstData(uint256 tokenId) external view returns (uint256 lv, uint256 exp, string memory url) {
+        NovaroDataTypes.DstData storage dstData = _dstData[tokenId];
+        return (dstData.lv, dstData.exp, dstData.url);
+    }
+
+    function getDstIntervals(uint256 index) external view returns (uint256 lv, uint256 left, uint256 right, string memory url) {
+        NovaroDataTypes.DstInterval storage interval = _dstIntervals[index];
+        return (interval.lv, interval.left, interval.right, interval.url);
+    }
+
+    function getDstIntervalLength() external view returns (uint256) {
+        return _dstIntervals.length;
+    }
 }

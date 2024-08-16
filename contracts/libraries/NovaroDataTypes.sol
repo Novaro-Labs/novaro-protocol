@@ -20,8 +20,6 @@ library NovaroDataTypes {
         string url;
     }
 
-
-
     //Stake request struct includes the staker address, amount, and chainId
     struct StakeRequest {
         address owner;
