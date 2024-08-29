@@ -5,18 +5,14 @@ import {NovaroErrors} from "../libraries/NovaroErrors.sol";
 import {NovaroDataTypes} from "../libraries/NovaroDataTypes.sol";
 import {NovaroEvents} from "../libraries/NovaroEvents.sol";
 import {IDynamicSocialToken} from "../interfaces/IDynamicSocialToken.sol";
-import {ERC721URIStorageUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
-import {ERC721BurnableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
-import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+
 /**
  * @title DynamicSocialToken
  * @dev This contract allows users to mint a DST when they bind their wallet.
  */
-contract DynamicSocialToken is
-    IDynamicSocialToken,
-    ERC721URIStorageUpgradeable,
-    ERC721BurnableUpgradeable
-{
+contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage {
     uint256 internal _tokenIdCounter;
 
     //Mapping information for the DST
@@ -25,13 +21,10 @@ contract DynamicSocialToken is
     //Intervals for DST levels and urls
     NovaroDataTypes.DstInterval[] internal _dstIntervals;
 
-    function initialize(
+    constructor(
         string memory name,
         string memory symbol
-    ) public initializer {
-        __ERC721_init(name, symbol);
-        __ERC721URIStorage_init();
-    }
+    ) ERC721(name, symbol) {}
 
     function _update(
         address to,
@@ -47,9 +40,6 @@ contract DynamicSocialToken is
         address to,
         uint256 tokenId
     ) internal pure {
-        if (from == address(0)) {
-            revert NovaroErrors.InvalidAddress();
-        }
         if (from != address(0) && to != address(0)) {
             revert NovaroErrors.TransferNotAllowed();
         }
@@ -57,12 +47,7 @@ contract DynamicSocialToken is
 
     function tokenURI(
         uint256 tokenId
-    )
-        public
-        view
-        override(ERC721URIStorageUpgradeable, ERC721Upgradeable)
-        returns (string memory)
-    {
+    ) public view override returns (string memory) {
         return _dstData[tokenId].url;
     }
 
@@ -157,24 +142,21 @@ contract DynamicSocialToken is
         _setTokenURI(tokenId, dstData.url);
     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    )
-        public
-        view
-        override(ERC721URIStorageUpgradeable, ERC721Upgradeable)
-        returns (bool)
-    {
-        return ERC721URIStorageUpgradeable.supportsInterface(interfaceId);
-    }
-
     //=================getter functions=================
-    function getDstData(uint256 tokenId) external view returns (uint256 lv, uint256 exp, string memory url) {
+    function getDstData(
+        uint256 tokenId
+    ) external view returns (uint256 lv, uint256 exp, string memory url) {
         NovaroDataTypes.DstData storage dstData = _dstData[tokenId];
         return (dstData.lv, dstData.exp, dstData.url);
     }
 
-    function getDstIntervals(uint256 index) external view returns (uint256 lv, uint256 left, uint256 right, string memory url) {
+    function getDstIntervals(
+        uint256 index
+    )
+        external
+        view
+        returns (uint256 lv, uint256 left, uint256 right, string memory url)
+    {
         NovaroDataTypes.DstInterval storage interval = _dstIntervals[index];
         return (interval.lv, interval.left, interval.right, interval.url);
     }

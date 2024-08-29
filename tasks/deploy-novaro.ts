@@ -75,7 +75,6 @@ task("read-dst-interval", "Configures intervals for DynamicSocialToken")
 
     try {
       const intervals = readIntervalsFromFile(mappingName);
-      console.log("74-intervals\n", intervals);
       await dynamicSocialToken.readInterval(intervals);
     } catch (error) {
       console.error("Error calling readInterval:", error);
