@@ -8,5 +8,5 @@ library NovaroErrors {
     error EmptyInterval();
     error IntervalNotSet();
     error AddressHasToken();
-
+    error TokenNotMinted();
 }

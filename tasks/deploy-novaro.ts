@@ -20,11 +20,8 @@ task("deploy-novaro")
       "DynamicSocialToken",
       deployer
     );
-    const dynamicSocialToken = await dynamicSocialTokenFactory.deploy();
+    const dynamicSocialToken = await dynamicSocialTokenFactory.deploy("Dynamic Social Token","DST");
     console.log("DynamicSocialToken deployed to:", dynamicSocialToken.target);
-
-    //config NFT metadata
-    await dynamicSocialToken.initialize("Dynamic Social Token","DST");
 
     //read interval for DynamicSocialToken
     await hre.run("read-dst-interval", {
