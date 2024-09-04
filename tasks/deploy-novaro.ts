@@ -20,11 +20,8 @@ task("deploy-novaro")
       "DynamicSocialToken",
       deployer
     );
-    const dynamicSocialToken = await dynamicSocialTokenFactory.deploy();
+    const dynamicSocialToken = await dynamicSocialTokenFactory.deploy("Dynamic Social Token","DST");
     console.log("DynamicSocialToken deployed to:", dynamicSocialToken.target);
-
-    //config NFT metadata
-    await dynamicSocialToken.initialize("Dynamic Social Token","DST");
 
     //read interval for DynamicSocialToken
     await hre.run("read-dst-interval", {
@@ -75,7 +72,6 @@ task("read-dst-interval", "Configures intervals for DynamicSocialToken")
 
     try {
       const intervals = readIntervalsFromFile(mappingName);
-      console.log("74-intervals\n", intervals);
       await dynamicSocialToken.readInterval(intervals);
     } catch (error) {
       console.error("Error calling readInterval:", error);

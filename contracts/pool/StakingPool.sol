@@ -12,6 +12,9 @@ import {NovaroDataTypes} from "../libraries/NovaroDataTypes.sol";
  * @dev: This contract is used to manage the staking of users on multiple chains.
  */
 contract StakingPool is IStakingPool {
+
+    string constant public NAME = "StakingPool";
+
     // Mapping of user addresses to their staking data
     mapping(address => NovaroDataTypes.StakeData) internal stakeData;
 
