@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
 /**
  * @title IDynamicSocialToken.sol
  * @dev Interface for the Dynamic Social Token (DST) contract, representing the user's social profile.
  */
 interface IDynamicSocialToken {
-
     /**
      * @dev Mints a DST token to the specified address, initializing it with an experience value based on
      * the user's social metrics (e.g., Twitter followers). This function can only be called by authorized

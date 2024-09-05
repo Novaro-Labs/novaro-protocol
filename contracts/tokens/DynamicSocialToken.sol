@@ -7,17 +7,14 @@ import {NovaroEvents} from "../libraries/NovaroEvents.sol";
 import {IDynamicSocialToken} from "../interfaces/IDynamicSocialToken.sol";
 import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {console} from "hardhat/console.sol";
-
 /**
  * @title DynamicSocialToken
  * @dev This contract allows users to mint a DST when they bind their wallet.
  */
 contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage {
+    string public constant NAME = "Dynamic Social Token";
 
-    string constant public NAME = "Dynamic Social Token";
-
-    uint256 internal _tokenIdCounter;
+    uint256 internal _tokenIdCounter = 1;
 
     //Mapping information for the DST
     mapping(uint256 => NovaroDataTypes.DstData) internal _dstData;
@@ -44,9 +41,9 @@ contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage {
         address to,
         uint256 tokenId
     ) internal pure {
-        if (from != address(0) && to != address(0)) {
-            revert NovaroErrors.TransferNotAllowed();
-        }
+        //        if (from != address(0) && to != address(0)) {
+        //            revert NovaroErrors.TransferNotAllowed();
+        //        }
     }
 
     function tokenURI(
