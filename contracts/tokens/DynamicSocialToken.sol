@@ -16,6 +16,9 @@ contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage {
 
     uint256 internal _tokenIdCounter = 1;
 
+    //user only have one DST
+    mapping(address => uint256)    tokenIds;
+
     //Mapping information for the DST
     mapping(uint256 => NovaroDataTypes.DstData) internal _dstData;
 
@@ -71,6 +74,7 @@ contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage {
         unchecked {
             _tokenIdCounter++;
             _safeMint(to, _tokenIdCounter);
+            tokenIds[to] = _tokenIdCounter;
             _feedDst(_tokenIdCounter, initialExp);
             return _tokenIdCounter;
         }
@@ -167,5 +171,9 @@ contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage {
 
     function getDstIntervalLength() external view returns (uint256) {
         return _dstIntervals.length;
+    }
+    
+    function getDstTokenId(address user) external view returns (uint256){
+        return tokenIds[user];
     }
 }
