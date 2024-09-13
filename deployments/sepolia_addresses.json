@@ -1,0 +1,7 @@
+{
+  "network": "sepolia",
+  "contracts": {
+    "DynamicSocialToken": "0x860d031E1C64Adb89cfB1f7cA8cE00B9d42982EE",
+    "StakingPool": "0xc6DE918F00656A637747f3FEb1EA40CfF1aeEb9B"
+  }
+}
