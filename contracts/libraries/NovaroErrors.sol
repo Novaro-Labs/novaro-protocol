@@ -11,4 +11,5 @@ library NovaroErrors {
     error AlreadyBoundDST();
     error AlreadyTransferDST();
     error DSTNotMinted();
+    error InvalidTokenId();
 }

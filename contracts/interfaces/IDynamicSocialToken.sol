@@ -19,21 +19,11 @@ interface IDynamicSocialToken {
     function mint(address to, uint256 initialExp) external returns (uint256);
 
     /**
-     * @dev Feeds on-chain data to a specific DST token to enhance its experience value.
-     * This can include various on-chain activities or interactions.
-     *
-     * @param tokenId The ID of the DST token to be updated.
-     * @param amount The amount by which the experience value will be increased.
-     */
-    function onChainFeed(uint256 tokenId, uint256 amount) external;
-
-    /**
      * @dev Feeds off-chain data to a specific DST token to enhance its experience value.
      * This can include data sourced from social media interactions, off-chain events, or other
      * off-chain metrics.
      *
-     * @param tokenId The ID of the DST token to be updated.
      * @param amount The amount by which the experience value will be increased.
      */
-    function offChainFeed(uint256 tokenId, uint256 amount) external;
+    function offChainFeed(uint256 amount) external;
 }

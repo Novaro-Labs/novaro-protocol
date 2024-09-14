@@ -32,7 +32,7 @@ describe("DynamicSocialToken", function () {
         expect(dstData.exp).to.equal(initialExp);
 
         const feedAmount = 50;
-        await dynamicSocialToken.offChainFeed(tokenId, feedAmount);
+        await dynamicSocialToken.connect(addr1).offChainFeed(feedAmount);
 
         dstData = await dynamicSocialToken.getDstData(tokenId);
         expect(dstData.exp).to.equal(initialExp + feedAmount);
@@ -54,23 +54,23 @@ describe("DynamicSocialToken", function () {
         verifyDstData(dstData0, 1, 0, intervals[0].url);
 
         //offChainFeed
-        await dynamicSocialToken.offChainFeed(tokenId, 50);
+        await dynamicSocialToken.connect(addr1).offChainFeed(50);
         const dstData1 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData1, 1, 50, intervals[0].url);
 
-        await dynamicSocialToken.offChainFeed(tokenId, 50);
+        await dynamicSocialToken.connect(addr1).offChainFeed(50);
         const dstData2 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData2, 2, 100, intervals[1].url);
 
-        await dynamicSocialToken.offChainFeed(tokenId, 115);
+        await dynamicSocialToken.connect(addr1).offChainFeed(115);
         const dstData3 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData3, 3, 215, intervals[2].url);
 
-        await dynamicSocialToken.offChainFeed(tokenId, 285);
+        await dynamicSocialToken.connect(addr1).offChainFeed(285);
         const dstData4 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData4, 6, 500, intervals[5].url);
 
-        await dynamicSocialToken.offChainFeed(tokenId, 225);
+        await dynamicSocialToken.connect(addr1).offChainFeed(225);
         const dstData5 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData5, 6, 725, intervals[5].url);
     });
