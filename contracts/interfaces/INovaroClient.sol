@@ -10,4 +10,11 @@ interface INovaroClient is IERC721Receiver {
         address owner,
         string calldata novaId
     ) external;
+
+    function createFollowerPassToken(
+        string calldata name,
+        string calldata symbol,
+        string calldata imageUrl,
+        string calldata des
+    ) external;
 }

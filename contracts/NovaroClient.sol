@@ -3,11 +3,15 @@ pragma solidity ^0.8.24;
 
 import {INovaroClient} from "./interfaces/INovaroClient.sol";
 import {NovaroErrors} from "./libraries/NovaroErrors.sol";
+import {NovaroDataTypes} from "./libraries/NovaroDataTypes.sol";
 import {NovaroEvents} from "./libraries/NovaroEvents.sol";
 import {DynamicSocialToken} from "./tokens/DynamicSocialToken.sol";
+import {FollowerPassToken} from "./tokens/FollowerPassToken.sol";
 
 contract NovaroClient is INovaroClient {
     mapping(string => uint256) private delegateTokenIds;
+    mapping(address => mapping(string => NovaroDataTypes.FollowerPassTokenData))
+        private followerPassTokens;
 
     DynamicSocialToken public dst;
 
@@ -42,6 +46,35 @@ contract NovaroClient is INovaroClient {
         emit NovaroEvents.CreateTokenBoundAccount(owner, tokenID, novaId);
     }
 
+    function createFollowerPassToken(
+        string calldata _name,
+        string calldata _symbol,
+        string calldata _imageUrl,
+        string calldata _des
+    ) external override {
+        FollowerPassToken followerPassToken = new FollowerPassToken(
+            _name,
+            _symbol,
+            msg.sender
+        );
+        NovaroDataTypes.FollowerPassTokenData memory tokenData = NovaroDataTypes
+            .FollowerPassTokenData({
+                deployer: msg.sender,
+                name: _name,
+                symbol: _symbol,
+                imageUrl: _imageUrl,
+                des: _des
+            });
+        followerPassTokens[msg.sender][_name] = tokenData;
+        emit NovaroEvents.CreateFollowerPassToken(
+            msg.sender,
+            _name,
+            _symbol,
+            _imageUrl,
+            _des
+        );
+    }
+
     // Implement IERC721Receiver to allow this contract to receive ERC721 tokens
     function onERC721Received(
         address operator,
@@ -58,4 +91,5 @@ contract NovaroClient is INovaroClient {
     ) external view returns (uint256) {
         return delegateTokenIds[novaId];
     }
+
 }

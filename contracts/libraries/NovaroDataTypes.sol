@@ -2,7 +2,6 @@
 pragma solidity ^0.8.24;
 
 library NovaroDataTypes {
-
     // This struct encapsulates the data associated with a Dynamic Social Token (DST),
     // including the token's level and experience points.
     struct DstData {
@@ -41,4 +40,11 @@ library NovaroDataTypes {
         uint256 chainId;
     }
 
+    struct FollowerPassTokenData {
+        address deployer;
+        string name;
+        string symbol;
+        string imageUrl;
+        string des;
+    }
 }

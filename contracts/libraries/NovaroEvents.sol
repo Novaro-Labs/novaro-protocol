@@ -30,4 +30,13 @@ library NovaroEvents {
         uint256 indexed tokenId,
         string indexed novaId
     );
+
+    //Follower Pass Token
+    event CreateFollowerPassToken(
+        address indexed owner,
+        string indexed name,
+        string indexed symbol,
+        string imageUri,
+        string des
+    );
 }
