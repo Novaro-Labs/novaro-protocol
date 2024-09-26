@@ -15,6 +15,7 @@ interface INovaroClient is IERC721Receiver {
         string calldata name,
         string calldata symbol,
         string calldata imageUrl,
-        string calldata des
+        string calldata des,
+        address _boundAccount
     ) external;
 }

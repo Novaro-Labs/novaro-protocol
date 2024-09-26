@@ -12,7 +12,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @title DynamicSocialToken
  * @dev This contract allows users to mint a DST when they bind their wallet.
  */
-contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage, Ownable(msg.sender) {
+contract DynamicSocialToken is
+    IDynamicSocialToken,
+    ERC721URIStorage,
+    Ownable(msg.sender)
+{
     string public constant NAME = "Dynamic Social Token";
 
     uint256 internal _tokenIdCounter = 1;
@@ -26,10 +30,7 @@ contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage, Ownable(ms
     //Intervals for DST levels and urls
     NovaroDataTypes.DstInterval[] internal _dstIntervals;
 
-    constructor(
-        string memory name,
-        string memory symbol
-    ) ERC721(name, symbol) {}
+    constructor() ERC721("Dynamic Social Token", "DST") {}
 
     function _update(
         address to,
@@ -124,10 +125,9 @@ contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage, Ownable(ms
         return (_dstIntervals[length - 1].lv, _dstIntervals[length - 1].url);
     }
 
-
     function offChainFeed(uint256 amount) external {
         uint256 tokenId = tokenIds[msg.sender];
-        if (tokenId <=  1) {
+        if (tokenId <= 1) {
             revert NovaroErrors.InvalidTokenId();
         }
         _feedDst(tokenId, amount);
@@ -173,8 +173,8 @@ contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage, Ownable(ms
     function getDstIntervalLength() external view returns (uint256) {
         return _dstIntervals.length;
     }
-    
-    function getDstTokenId(address user) external view returns (uint256){
+
+    function getDstTokenId(address user) external view returns (uint256) {
         return tokenIds[user];
     }
 }

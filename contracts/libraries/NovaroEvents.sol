@@ -34,8 +34,9 @@ library NovaroEvents {
     //Follower Pass Token
     event CreateFollowerPassToken(
         address indexed owner,
-        string indexed name,
+        address indexed boundAccount,
         string indexed symbol,
+        string name,
         string imageUri,
         string des
     );

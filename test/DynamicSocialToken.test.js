@@ -12,16 +12,13 @@ describe("DynamicSocialToken", function () {
 
     beforeEach(async function () {
         DynamicSocialToken = await ethers.getContractFactory("DynamicSocialToken");
-        dynamicSocialToken = await DynamicSocialToken.deploy(
-            "DynamicSocialToken",
-            "DST"
-        );
+        dynamicSocialToken = await DynamicSocialToken.deploy();
         [deployer, addr1] = await ethers.getSigners();
         intervals = readIntervalsFromFile(INTERVAL_CONFIG_FILE);
     });
 
     it("should have the correct name and symbol", async function () {
-        expect(await dynamicSocialToken.name()).to.equal("DynamicSocialToken");
+        expect(await dynamicSocialToken.name()).to.equal("Dynamic Social Token");
         expect(await dynamicSocialToken.symbol()).to.equal("DST");
     });
 

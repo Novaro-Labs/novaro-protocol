@@ -10,7 +10,7 @@ import {FollowerPassToken} from "./tokens/FollowerPassToken.sol";
 
 contract NovaroClient is INovaroClient {
     mapping(string => uint256) private delegateTokenIds;
-    mapping(address => mapping(string => NovaroDataTypes.FollowerPassTokenData))
+    mapping(address => mapping(address => mapping(string =>NovaroDataTypes.FollowerPassTokenData)))
         private followerPassTokens;
 
     DynamicSocialToken public dst;
@@ -50,26 +50,29 @@ contract NovaroClient is INovaroClient {
         string calldata _name,
         string calldata _symbol,
         string calldata _imageUrl,
-        string calldata _des
+        string calldata _des,
+        address _boundAccount
     ) external override {
         FollowerPassToken followerPassToken = new FollowerPassToken(
             _name,
             _symbol,
-            msg.sender
+            _boundAccount
         );
         NovaroDataTypes.FollowerPassTokenData memory tokenData = NovaroDataTypes
             .FollowerPassTokenData({
                 deployer: msg.sender,
+                boundAccount: _boundAccount,
                 name: _name,
                 symbol: _symbol,
                 imageUrl: _imageUrl,
                 des: _des
             });
-        followerPassTokens[msg.sender][_name] = tokenData;
+        followerPassTokens[msg.sender][_boundAccount][_symbol] = tokenData;
         emit NovaroEvents.CreateFollowerPassToken(
             msg.sender,
-            _name,
+            _boundAccount,
             _symbol,
+            _name,
             _imageUrl,
             _des
         );
@@ -92,4 +95,11 @@ contract NovaroClient is INovaroClient {
         return delegateTokenIds[novaId];
     }
 
+    function getFollowerPassTokenData(
+        address owner,
+        address boundAccount,
+        string calldata symbol
+    ) external view returns (NovaroDataTypes.FollowerPassTokenData memory) {
+        return followerPassTokens[owner][boundAccount][symbol];
+    }
 }

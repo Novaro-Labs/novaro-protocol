@@ -17,7 +17,7 @@ describe("Delegation Mint for DST", function () {
     [deployer, user] = await ethers.getSigners();
 
     DynamicSocialToken = await ethers.getContractFactory("DynamicSocialToken");
-    dynamicSocialToken = await DynamicSocialToken.deploy("DynamicSocialToken", "DST");
+    dynamicSocialToken = await DynamicSocialToken.deploy();
     const intervals = readIntervalsFromFile(INTERVAL_CONFIG_FILE);
     await dynamicSocialToken.readInterval(intervals);
 

@@ -9,8 +9,8 @@ contract FollowerPassToken is ERC20 {
     constructor(
         string memory name,
         string memory symbol,
-        address owner
+        address boundAccount
     ) ERC20(name, symbol) {
-        _mint(owner, 1000000 * 10 ** 18);
+        _mint(boundAccount, 1000000 * 10 ** 18);
     }
 }

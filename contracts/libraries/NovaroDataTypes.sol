@@ -42,6 +42,7 @@ library NovaroDataTypes {
 
     struct FollowerPassTokenData {
         address deployer;
+        address boundAccount;
         string name;
         string symbol;
         string imageUrl;
