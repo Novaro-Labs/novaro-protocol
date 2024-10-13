@@ -10,7 +10,7 @@ import {FollowerPassToken} from "./tokens/FollowerPassToken.sol";
 
 contract NovaroClient is INovaroClient {
     mapping(string => uint256) private delegateTokenIds;
-    mapping(address => mapping(address => mapping(string =>NovaroDataTypes.FollowerPassTokenData)))
+    mapping(address => mapping(address => mapping(string => NovaroDataTypes.FollowerPassTokenData)))
         private followerPassTokens;
 
     DynamicSocialToken public dst;
@@ -62,6 +62,7 @@ contract NovaroClient is INovaroClient {
             .FollowerPassTokenData({
                 deployer: msg.sender,
                 boundAccount: _boundAccount,
+                token: address(followerPassToken),
                 name: _name,
                 symbol: _symbol,
                 imageUrl: _imageUrl,
@@ -101,5 +102,13 @@ contract NovaroClient is INovaroClient {
         string calldata symbol
     ) external view returns (NovaroDataTypes.FollowerPassTokenData memory) {
         return followerPassTokens[owner][boundAccount][symbol];
+    }
+
+    function getFollowerPassTokenAddress(
+        address owner,
+        address boundAccount,
+        string calldata symbol
+    ) external view returns (address) {
+        return followerPassTokens[owner][boundAccount][symbol].token;
     }
 }

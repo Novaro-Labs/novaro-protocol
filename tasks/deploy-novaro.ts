@@ -25,6 +25,22 @@ task("deploy-novaro")
     const dynamicSocialToken = await dynamicSocialTokenFactory.deploy();
     console.log("DynamicSocialToken deployed to:", dynamicSocialToken.target);
 
+    //Deploy Account Contract
+    const AccountFactory = await ethers.getContractFactory(
+      "ERC6551Account",
+      deployer
+    );
+    const accountFactory = await AccountFactory.deploy();
+    console.log("AccountFactory deployed to:", accountFactory.target);
+
+    //Deploy Registry
+    const AccountRegistry = await ethers.getContractFactory(
+      "ERC6551Registry",
+      deployer
+    );
+    const accountRegistry = await AccountRegistry.deploy();
+    console.log("AccountRegistry deployed to:", accountRegistry.target);
+
     //read interval for DynamicSocialToken
     await hre.run("read-dst-interval", {
       dstAddress: dynamicSocialToken.target,
@@ -53,6 +69,8 @@ task("deploy-novaro")
       contracts: {
         DynamicSocialToken: dynamicSocialToken.target,
         NovaroClient: novaroClient.target,
+        AccountFactory: accountFactory.target,
+        AccountRegistry: accountRegistry.target,
         StakingPool: stakingPool.target,
       },
     };

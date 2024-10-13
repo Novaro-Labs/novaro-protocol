@@ -11,6 +11,6 @@ contract FollowerPassToken is ERC20 {
         string memory symbol,
         address boundAccount
     ) ERC20(name, symbol) {
-        _mint(boundAccount, 1000000 * 10 ** 18);
+        _mint(boundAccount, 10 ** 18);
     }
 }
