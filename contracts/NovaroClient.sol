@@ -104,6 +104,14 @@ contract NovaroClient is INovaroClient {
         return followerPassTokens[owner][boundAccount][symbol];
     }
 
+    // function getAllFollowerPassTokenData(
+    //     address owner,
+    //     address boundAccount,
+    //     string calldata symbol
+    // ) external view returns (NovaroDataTypes.FollowerPassTokenData memory) {
+    //     return followerPassTokens[owner][boundAccount][symbol];
+    // }
+
     function getFollowerPassTokenAddress(
         address owner,
         address boundAccount,
