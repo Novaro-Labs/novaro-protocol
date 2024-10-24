@@ -47,13 +47,6 @@ task("deploy-novaro")
       mappingName: taskArgs.mappingName,
     });
 
-    // deploy StakingPool
-    const stakingPoolFactory = await ethers.getContractFactory(
-      "StakingPool",
-      deployer
-    );
-    const stakingPool = await stakingPoolFactory.deploy();
-    console.log("StakingPool deployed to:", stakingPool.target);
 
     // deploy NovaroClient
     const NovaroClient = await ethers.getContractFactory(
@@ -71,7 +64,6 @@ task("deploy-novaro")
         NovaroClient: novaroClient.target,
         AccountFactory: accountFactory.target,
         AccountRegistry: accountRegistry.target,
-        StakingPool: stakingPool.target,
       },
     };
     // to save contract addresses to file
