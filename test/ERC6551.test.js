@@ -88,11 +88,14 @@ describe("ERC6551 Account", async function () {
     const imageUrl = "https://example.com/fp-image";
     const description = "A test follower pass token";
     await novaroClient.createFollowerPassToken(name, symbol, imageUrl, description, preComputedAddress);
+    //get tokendata
+    const tokenData = await novaroClient.getAllFollowerPassToken();
+    expect(tokenData.length).to.equal(1);
+    if (tokenData.length = 0) { return; }
     //get token address
-    const tokenAddress = await novaroClient.getFollowerPassTokenAddress(owner.address, preComputedAddress, "FP");
-    console.log("tokenAddress", tokenAddress);
-
-    const token = await ethers.getContractAt("ERC20", tokenAddress);
+    const tokenAddresses = await novaroClient.getTokenAddresses();
+    console.log("tokenAddress", tokenAddresses[0]);
+    const token = await ethers.getContractAt("ERC20", tokenAddresses[0]);
     const balance_of_owner = await token.balanceOf(owner.address);
     console.log("balance_of_owner", balance_of_owner);
     expect(balance_of_owner).to.equal(0n);
@@ -100,5 +103,15 @@ describe("ERC6551 Account", async function () {
     const balanceOf_account = await token.balanceOf(preComputedAddress);
     console.log("balanceOf_account", balanceOf_account);
     expect(balanceOf_account).to.equal(10n ** 18n);
+
+    //metadata
+    expect(tokenData[0].deployer).to.equal(owner.address);
+    expect(tokenData[0].boundAccount).to.equal(preComputedAddress);
+    expect(tokenData[0].token).to.equal(tokenAddresses[0]);
+    expect(tokenData[0].name).to.equal(name);
+    expect(tokenData[0].symbol).to.equal(symbol);
+    expect(tokenData[0].imageUrl).to.equal(imageUrl);
+    expect(tokenData[0].des).to.equal(description);
+
   })
 });

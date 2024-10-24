@@ -21,27 +21,6 @@ library NovaroDataTypes {
         string url;
     }
 
-    //Stake request struct includes the staker address, amount, and chainId
-    struct StakeRequest {
-        address owner;
-        uint256 amount;
-        uint256 chainId;
-    }
-
-    //Unstake request struct
-    struct UnstakeRequest {
-        address owner;
-        uint256 amount;
-        uint chainId;
-    }
-
-    //This struct is for storing on-chain stake operations
-    struct StakeData {
-        address staker;
-        uint256 amount;
-        uint256 chainId;
-    }
-
     struct FollowerPassTokenData {
         address deployer;
         address boundAccount;

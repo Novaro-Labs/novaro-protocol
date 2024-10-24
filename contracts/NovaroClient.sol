@@ -9,41 +9,16 @@ import {DynamicSocialToken} from "./tokens/DynamicSocialToken.sol";
 import {FollowerPassToken} from "./tokens/FollowerPassToken.sol";
 
 contract NovaroClient is INovaroClient {
-    mapping(string => uint256) private delegateTokenIds;
-    mapping(address => mapping(address => mapping(string => NovaroDataTypes.FollowerPassTokenData)))
-        private followerPassTokens;
 
-    DynamicSocialToken public dst;
+    string public constant NAME =  "Novaro Client";
+
+    address[] private tokens;
+    mapping(address => NovaroDataTypes.FollowerPassTokenData) private tokenDataMapping;
+
+    DynamicSocialToken private dst;
 
     constructor(DynamicSocialToken _dst) {
         dst = _dst;
-    }
-
-    //admin mint an DST for user when user delegate their NovaID without bind wallet
-    function onDelegateReceived(string calldata novaId) external override {
-        if (delegateTokenIds[novaId] != 0) {
-            revert NovaroErrors.AlreadyBoundDST();
-        }
-        uint256 tokenId = dst.mint(address(this), 0);
-        delegateTokenIds[novaId] = tokenId;
-    }
-
-    function createTokenBoundAccount(
-        address owner,
-        string calldata novaId
-    ) external override {
-        if (delegateTokenIds[novaId] == 0) {
-            revert NovaroErrors.DSTNotMinted();
-        }
-        if (delegateTokenIds[novaId] == 1) {
-            revert NovaroErrors.AlreadyTransferDST();
-        }
-        //transfer DST to user
-        uint256 tokenID = delegateTokenIds[novaId];
-        dst.transferFrom(address(this), owner, tokenID);
-        //already transfered, set tokenId to 1
-        delegateTokenIds[novaId] = 1;
-        emit NovaroEvents.CreateTokenBoundAccount(owner, tokenID, novaId);
     }
 
     function createFollowerPassToken(
@@ -68,7 +43,8 @@ contract NovaroClient is INovaroClient {
                 imageUrl: _imageUrl,
                 des: _des
             });
-        followerPassTokens[msg.sender][_boundAccount][_symbol] = tokenData;
+        tokens.push(address(followerPassToken));
+        tokenDataMapping[address(followerPassToken)] = tokenData;
         emit NovaroEvents.CreateFollowerPassToken(
             msg.sender,
             _boundAccount,
@@ -89,34 +65,18 @@ contract NovaroClient is INovaroClient {
         return this.onERC721Received.selector;
     }
 
-    //=======getters=======
-    function getDelegateTokenId(
-        string calldata novaId
-    ) external view returns (uint256) {
-        return delegateTokenIds[novaId];
+    function getTokenAddresses() external view returns (address[] memory) {
+        return tokens;
     }
 
-    function getFollowerPassTokenData(
-        address owner,
-        address boundAccount,
-        string calldata symbol
-    ) external view returns (NovaroDataTypes.FollowerPassTokenData memory) {
-        return followerPassTokens[owner][boundAccount][symbol];
-    }
-
-    // function getAllFollowerPassTokenData(
-    //     address owner,
-    //     address boundAccount,
-    //     string calldata symbol
-    // ) external view returns (NovaroDataTypes.FollowerPassTokenData memory) {
-    //     return followerPassTokens[owner][boundAccount][symbol];
-    // }
-
-    function getFollowerPassTokenAddress(
-        address owner,
-        address boundAccount,
-        string calldata symbol
-    ) external view returns (address) {
-        return followerPassTokens[owner][boundAccount][symbol].token;
+    function getAllFollowerPassToken() external view returns (NovaroDataTypes.FollowerPassTokenData[] memory) {
+        //cache storage on blockchain to reduce gas usage
+        mapping(address => NovaroDataTypes.FollowerPassTokenData) storage _tokenDataMapping = tokenDataMapping;
+        address[] memory _tokensAddresses = tokens;
+        NovaroDataTypes.FollowerPassTokenData[] memory _tokens = new NovaroDataTypes.FollowerPassTokenData[](_tokensAddresses.length);
+        for (uint256 i = 0; i < _tokensAddresses.length; i++) {
+            _tokens[i] = _tokenDataMapping[_tokensAddresses[i]];
+        }
+        return _tokens;
     }
 }

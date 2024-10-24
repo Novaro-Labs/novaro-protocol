@@ -28,14 +28,5 @@ describe("NovaroClient", function () {
     )
       .to.emit(novaroClient, "CreateFollowerPassToken")
       .withArgs(owner.address, addr1.address, symbol, name, imageUrl, description);
-
-    // Check that the token data is stored correctly in the mapping
-    const tokenData = await novaroClient.getFollowerPassTokenData(owner.address, addr1.address, symbol);
-    expect(tokenData.name).to.equal(name);
-    expect(tokenData.symbol).to.equal(symbol);
-    expect(tokenData.imageUrl).to.equal(imageUrl);
-    expect(tokenData.des).to.equal(description);
-    expect(tokenData.deployer).to.equal(owner.address);
-    expect(tokenData.boundAccount).to.equal(addr1.address);
   });
 });
