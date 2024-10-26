@@ -1,42 +1,40 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { readIntervalsFromFile } = require("../helpers/file-helper");
+const { INTERVAL_CONFIG_FILE } = require("../helpers/constants");
 
 describe("DynamicSocialToken", function () {
     let DynamicSocialToken, dynamicSocialToken, deployer, addr1;
     let intervals;
     const initialExp = 100;
+    const tokenId = 2;
+
 
     beforeEach(async function () {
         DynamicSocialToken = await ethers.getContractFactory("DynamicSocialToken");
-        dynamicSocialToken = await DynamicSocialToken.deploy(
-            "DynamicSocialToken",
-            "DST"
-        );
+        dynamicSocialToken = await DynamicSocialToken.deploy();
         [deployer, addr1] = await ethers.getSigners();
-        intervals = readIntervalsFromFile("dst_interval_config.json");
+        intervals = readIntervalsFromFile(INTERVAL_CONFIG_FILE);
     });
 
     it("should have the correct name and symbol", async function () {
-        expect(await dynamicSocialToken.name()).to.equal("DynamicSocialToken");
+        expect(await dynamicSocialToken.name()).to.equal("Dynamic Social Token");
         expect(await dynamicSocialToken.symbol()).to.equal("DST");
     });
 
     it("should correctly feed off-chain data to a DST token", async function () {
         await dynamicSocialToken.readInterval(intervals);
-
         await dynamicSocialToken.mint(addr1.address, initialExp);
-
-        let dstData = await dynamicSocialToken.getDstData(1);
+        let dstData = await dynamicSocialToken.getDstData(tokenId);
         expect(dstData.exp).to.equal(initialExp);
 
         const feedAmount = 50;
-        await dynamicSocialToken.offChainFeed(1, feedAmount);
+        await dynamicSocialToken.connect(addr1).offChainFeed(feedAmount);
 
-        dstData = await dynamicSocialToken.getDstData(1);
+        dstData = await dynamicSocialToken.getDstData(tokenId);
         expect(dstData.exp).to.equal(initialExp + feedAmount);
 
-        const [level, , url] = await dynamicSocialToken.getDstData(1);
+        const [level, , url] = await dynamicSocialToken.getDstData(tokenId);
         const { lv: expectedLevel, url: expectedUrl } = intervals.find(
             (interval) =>
                 initialExp + feedAmount > interval.left &&
@@ -49,28 +47,28 @@ describe("DynamicSocialToken", function () {
         //mint
         await dynamicSocialToken.readInterval(intervals);
         await dynamicSocialToken.mint(addr1.address, 0);
-        const dstData0 = await dynamicSocialToken.getDstData(1);
+        const dstData0 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData0, 1, 0, intervals[0].url);
 
         //offChainFeed
-        await dynamicSocialToken.offChainFeed(1, 50);
-        const dstData1 = await dynamicSocialToken.getDstData(1);
+        await dynamicSocialToken.connect(addr1).offChainFeed(50);
+        const dstData1 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData1, 1, 50, intervals[0].url);
 
-        await dynamicSocialToken.offChainFeed(1, 50);
-        const dstData2 = await dynamicSocialToken.getDstData(1);
+        await dynamicSocialToken.connect(addr1).offChainFeed(50);
+        const dstData2 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData2, 2, 100, intervals[1].url);
 
-        await dynamicSocialToken.offChainFeed(1, 115);
-        const dstData3 = await dynamicSocialToken.getDstData(1);
+        await dynamicSocialToken.connect(addr1).offChainFeed(115);
+        const dstData3 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData3, 3, 215, intervals[2].url);
 
-        await dynamicSocialToken.offChainFeed(1, 285);
-        const dstData4 = await dynamicSocialToken.getDstData(1);
+        await dynamicSocialToken.connect(addr1).offChainFeed(285);
+        const dstData4 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData4, 6, 500, intervals[5].url);
 
-        await dynamicSocialToken.offChainFeed(1, 225);
-        const dstData5 = await dynamicSocialToken.getDstData(1);
+        await dynamicSocialToken.connect(addr1).offChainFeed(225);
+        const dstData5 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData5, 6, 725, intervals[5].url);
     });
 
@@ -96,7 +94,7 @@ describe("DynamicSocialToken", function () {
     it("should lv equal to 1 if mint initial experience is 0", async function () {
         await dynamicSocialToken.readInterval(intervals);
         await dynamicSocialToken.mint(addr1.address, 0);
-        const [level, exp, url] = await dynamicSocialToken.getDstData(1);
+        const [level, exp, url] = await dynamicSocialToken.getDstData(tokenId);
         expect(level).to.equal(1);
         expect(exp).to.equal(0);
         expect(url).to.equal(intervals[0].url);

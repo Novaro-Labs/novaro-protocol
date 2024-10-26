@@ -1,0 +1,9 @@
+{
+  "network": "sepolia",
+  "contracts": {
+    "DynamicSocialToken": "0x680a945Eb287DD46a6Ed124AC09580D47007F240",
+    "NovaroClient": "0x17175987660b2D4b4030C3251E2017591DE9CD84",
+    "AccountFactory": "0xAb6839cA9BFb3b003D02A8c77908F5eFc86900dA",
+    "AccountRegistry": "0xE54813A1739e081c95Ef5f757bddc0844D29F1b9"
+  }
+}

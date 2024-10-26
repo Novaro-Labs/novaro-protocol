@@ -7,17 +7,22 @@ import {NovaroEvents} from "../libraries/NovaroEvents.sol";
 import {IDynamicSocialToken} from "../interfaces/IDynamicSocialToken.sol";
 import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {console} from "hardhat/console.sol";
-
+import "@openzeppelin/contracts/access/Ownable.sol";
 /**
  * @title DynamicSocialToken
  * @dev This contract allows users to mint a DST when they bind their wallet.
  */
-contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage {
+contract DynamicSocialToken is
+    IDynamicSocialToken,
+    ERC721URIStorage,
+    Ownable(msg.sender)
+{
+    string public constant NAME = "Dynamic Social Token";
 
-    string constant public NAME = "Dynamic Social Token";
+    uint256 internal _tokenIdCounter = 1;
 
-    uint256 internal _tokenIdCounter;
+    //user only have one DST
+    mapping(address => uint256) internal tokenIds;
 
     //Mapping information for the DST
     mapping(uint256 => NovaroDataTypes.DstData) internal _dstData;
@@ -25,10 +30,7 @@ contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage {
     //Intervals for DST levels and urls
     NovaroDataTypes.DstInterval[] internal _dstIntervals;
 
-    constructor(
-        string memory name,
-        string memory symbol
-    ) ERC721(name, symbol) {}
+    constructor() ERC721("Dynamic Social Token", "DST") {}
 
     function _update(
         address to,
@@ -44,9 +46,9 @@ contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage {
         address to,
         uint256 tokenId
     ) internal pure {
-        if (from != address(0) && to != address(0)) {
-            revert NovaroErrors.TransferNotAllowed();
-        }
+        //        if (from != address(0) && to != address(0)) {
+        //            revert NovaroErrors.TransferNotAllowed();
+        //        }
     }
 
     function tokenURI(
@@ -74,6 +76,7 @@ contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage {
         unchecked {
             _tokenIdCounter++;
             _safeMint(to, _tokenIdCounter);
+            tokenIds[to] = _tokenIdCounter;
             _feedDst(_tokenIdCounter, initialExp);
             return _tokenIdCounter;
         }
@@ -86,7 +89,7 @@ contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage {
     // @dev Reverts with an error if the provided intervals array is empty.
     function readInterval(
         NovaroDataTypes.DstInterval[] memory intervals
-    ) external {
+    ) external onlyOwner {
         delete _dstIntervals;
         uint256 length = intervals.length;
         if (length == 0) {
@@ -122,12 +125,11 @@ contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage {
         return (_dstIntervals[length - 1].lv, _dstIntervals[length - 1].url);
     }
 
-    function onChainFeed(uint256 tokenId, uint256 amount) external {
-        _feedDst(tokenId, amount);
-        emit NovaroEvents.OnChainFeed(tokenId, amount);
-    }
-
-    function offChainFeed(uint256 tokenId, uint256 amount) external {
+    function offChainFeed(uint256 amount) external {
+        uint256 tokenId = tokenIds[msg.sender];
+        if (tokenId <= 1) {
+            revert NovaroErrors.InvalidTokenId();
+        }
         _feedDst(tokenId, amount);
         emit NovaroEvents.OffChainFeed(tokenId, amount);
     }
@@ -170,5 +172,9 @@ contract DynamicSocialToken is IDynamicSocialToken, ERC721URIStorage {
 
     function getDstIntervalLength() external view returns (uint256) {
         return _dstIntervals.length;
+    }
+
+    function getDstTokenId(address user) external view returns (uint256) {
+        return tokenIds[user];
     }
 }

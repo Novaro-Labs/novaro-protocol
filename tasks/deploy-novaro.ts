@@ -1,12 +1,14 @@
 import { task } from "hardhat/config";
 import { ethers } from "hardhat";
-import {readIntervalsFromFile} from "../helpers/file-helper"
+import { readIntervalsFromFile } from "../helpers/file-helper";
 import fs from "fs";
 import path from "path";
 
-
 task("deploy-novaro")
-  .addParam("mappingName", "The name of the file suffixed with .json to pass to readInterval under config/mapping folder")
+  .addParam(
+    "mappingName",
+    "The name of the file suffixed with .json to pass to readInterval under config/mapping folder"
+  )
   .setAction(async (taskArgs, hre) => {
     //compile contracts
     await hre.run("compile");
@@ -20,8 +22,24 @@ task("deploy-novaro")
       "DynamicSocialToken",
       deployer
     );
-    const dynamicSocialToken = await dynamicSocialTokenFactory.deploy("Dynamic Social Token","DST");
+    const dynamicSocialToken = await dynamicSocialTokenFactory.deploy();
     console.log("DynamicSocialToken deployed to:", dynamicSocialToken.target);
+
+    //Deploy Account Contract
+    const AccountFactory = await ethers.getContractFactory(
+      "ERC6551Account",
+      deployer
+    );
+    const accountFactory = await AccountFactory.deploy();
+    console.log("AccountFactory deployed to:", accountFactory.target);
+
+    //Deploy Registry
+    const AccountRegistry = await ethers.getContractFactory(
+      "ERC6551Registry",
+      deployer
+    );
+    const accountRegistry = await AccountRegistry.deploy();
+    console.log("AccountRegistry deployed to:", accountRegistry.target);
 
     //read interval for DynamicSocialToken
     await hre.run("read-dst-interval", {
@@ -29,20 +47,23 @@ task("deploy-novaro")
       mappingName: taskArgs.mappingName,
     });
 
-    // deploy StakingPool
-    const stakingPoolFactory = await ethers.getContractFactory(
-      "StakingPool",
+
+    // deploy NovaroClient
+    const NovaroClient = await ethers.getContractFactory(
+      "NovaroClient",
       deployer
     );
-    const stakingPool = await stakingPoolFactory.deploy();
-    console.log("StakingPool deployed to:", stakingPool.target);
+    const novaroClient = await NovaroClient.deploy(dynamicSocialToken.target);
+    console.log("NovaroClient deployed to:", novaroClient.target);
 
     // save contract addresses to file
     const addresses = {
       network: network.name,
       contracts: {
         DynamicSocialToken: dynamicSocialToken.target,
-        StakingPool: stakingPool.target,
+        NovaroClient: novaroClient.target,
+        AccountFactory: accountFactory.target,
+        AccountRegistry: accountRegistry.target,
       },
     };
     // to save contract addresses to file
@@ -81,4 +102,3 @@ task("read-dst-interval", "Configures intervals for DynamicSocialToken")
 
 // Example usage:
 //npx hardhat deploy-novaro --mapping-name dst_interval_config.json --network hardhat
-
