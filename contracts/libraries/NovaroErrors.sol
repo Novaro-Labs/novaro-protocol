@@ -12,4 +12,7 @@ library NovaroErrors {
     error AlreadyTransferDST();
     error DSTNotMinted();
     error InvalidTokenId();
+    error InvalidDST();
+    error EmptyTokenBoundAccount();
+    error EmptyFeeder();
 }

@@ -19,6 +19,8 @@ contract DynamicSocialToken is
 {
     string public constant NAME = "Dynamic Social Token";
 
+    address private _feeder;
+
     uint256 internal _tokenIdCounter = 1;
 
     //user only have one DST
@@ -31,6 +33,10 @@ contract DynamicSocialToken is
     NovaroDataTypes.DstInterval[] internal _dstIntervals;
 
     constructor() ERC721("Dynamic Social Token", "DST") {}
+
+    function setFeeder(address feeder) external onlyOwner {
+        _feeder = feeder;
+    }
 
     function _update(
         address to,
@@ -125,8 +131,11 @@ contract DynamicSocialToken is
         return (_dstIntervals[length - 1].lv, _dstIntervals[length - 1].url);
     }
 
-    function offChainFeed(uint256 amount) external {
-        uint256 tokenId = tokenIds[msg.sender];
+    function offChainFeed(address _owner, uint256 amount) external override {
+        if (_feeder == address(0) || msg.sender != _feeder) {
+            revert NovaroErrors.EmptyFeeder();
+        }
+        uint256 tokenId = tokenIds[_owner];
         if (tokenId <= 1) {
             revert NovaroErrors.InvalidTokenId();
         }
@@ -176,5 +185,9 @@ contract DynamicSocialToken is
 
     function getDstTokenId(address user) external view returns (uint256) {
         return tokenIds[user];
+    }
+
+    function getFeeder() external view returns (address) {
+        return _feeder;
     }
 }

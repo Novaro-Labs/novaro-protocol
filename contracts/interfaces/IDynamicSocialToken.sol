@@ -22,8 +22,8 @@ interface IDynamicSocialToken {
      * @dev Feeds off-chain data to a specific DST token to enhance its experience value.
      * This can include data sourced from social media interactions, off-chain events, or other
      * off-chain metrics.
-     *
+     * @param _owner The address of the DST token owner.
      * @param amount The amount by which the experience value will be increased.
      */
-    function offChainFeed(uint256 amount) external;
+    function offChainFeed(address _owner, uint256 amount) external;
 }

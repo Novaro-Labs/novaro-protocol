@@ -2,7 +2,6 @@
 pragma solidity ^0.8.24    ;
 
 import "@openzeppelin/contracts/utils/Create2.sol";
-
 import "../interfaces/IERC6551Registry.sol";
 import "../libraries/ERC6551BytecodeLib.sol";
 
@@ -16,7 +15,7 @@ contract ERC6551Registry is IERC6551Registry {
         uint256 tokenId,
         uint256 salt,
         bytes calldata initData
-    ) external returns (address) {
+    ) public returns (address) {
         bytes memory code = ERC6551BytecodeLib.getCreationCode(
             implementation,
             chainId,

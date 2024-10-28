@@ -56,9 +56,14 @@ task("deploy-novaro")
     const novaroClient = await NovaroClient.deploy(dynamicSocialToken.target);
     console.log("NovaroClient deployed to:", novaroClient.target);
 
+    // set feeder address for DynamicSocialToken
+    await dynamicSocialToken.setFeeder(novaroClient.target);
+    console.log("Feeder address set for DynamicSocialToken");
+
     // save contract addresses to file
     const addresses = {
       network: network.name,
+      feeder: novaroClient.target,
       contracts: {
         DynamicSocialToken: dynamicSocialToken.target,
         NovaroClient: novaroClient.target,

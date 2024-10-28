@@ -22,4 +22,21 @@ library NovaroEvents {
         string imageUri,
         string des
     );
+
+    //Token Bound Account
+    event AccountAlreadyBound(address indexed owner, address indexed boundAccount);
+    event CreateAccount(address indexed owner, address indexed boundAccount);
+
+    event SellFollowerPassToken(
+        address indexed seller,
+        address indexed token,
+        uint256 indexed amount
+    );
+
+    event BuyFollowerPassToken(
+        address indexed buyer,
+        address indexed token,
+        uint256 indexed amount
+    );
+
 }
