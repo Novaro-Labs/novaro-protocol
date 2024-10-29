@@ -31,8 +31,8 @@ const config: HardhatUserConfig = {
       chainId: 1337,
     },
     sepolia: {
-      url: process.env.ALCHEMY_SEPOLIA_API_KEY as string,
-      accounts: [process.env.PRIVATE_KEY as string],
+      url: process.env.ALCHEMY_SEPOLIA_API_KEY,
+      accounts: [process.env.PRIVATE_DEPLOYER_KEY, process.env.PRIVATE_LIQUIDITY_POOL_KEY],
     },
   },
   gasReporter: {

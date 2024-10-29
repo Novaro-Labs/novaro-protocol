@@ -19,6 +19,7 @@ describe("DynamicSocialToken", function () {
         const NovaroClient = await ethers.getContractFactory("NovaroClient");
         novaroClient = await NovaroClient.deploy(dynamicSocialToken.target);
         await dynamicSocialToken.setFeeder(novaroClient.target);
+        await novaroClient.setDynamicSocialToken(dynamicSocialToken.target)
     });
 
     it("should have the correct name and symbol", async function () {
@@ -33,7 +34,7 @@ describe("DynamicSocialToken", function () {
         expect(dstData.exp).to.equal(initialExp);
 
         const feedAmount = 50;
-        await novaroClient.offChainFeed(addr1.address,feedAmount);
+        await novaroClient.connect(addr1).offChainFeed(feedAmount);
 
         dstData = await dynamicSocialToken.getDstData(tokenId);
         expect(dstData.exp).to.equal(initialExp + feedAmount);
@@ -55,23 +56,23 @@ describe("DynamicSocialToken", function () {
         verifyDstData(dstData0, 1, 0, intervals[0].url);
 
         //offChainFeed
-        await novaroClient.offChainFeed(addr1.address, 50);
+        await novaroClient.connect(addr1).offChainFeed(50);
         const dstData1 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData1, 1, 50, intervals[0].url);
 
-        await novaroClient.offChainFeed(addr1.address, 50);
+        await novaroClient.connect(addr1).offChainFeed(50);
         const dstData2 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData2, 2, 100, intervals[1].url);
 
-        await novaroClient.offChainFeed(addr1.address, 115);
+        await novaroClient.connect(addr1).offChainFeed(115);
         const dstData3 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData3, 3, 215, intervals[2].url);
 
-        await novaroClient.offChainFeed(addr1.address, 285);
+        await novaroClient.connect(addr1).offChainFeed(285);
         const dstData4 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData4, 6, 500, intervals[5].url);
 
-        await novaroClient.offChainFeed(addr1.address, 225);
+        await novaroClient.connect(addr1).offChainFeed(225);
         const dstData5 = await dynamicSocialToken.getDstData(tokenId);
         verifyDstData(dstData5, 6, 725, intervals[5].url);
     });

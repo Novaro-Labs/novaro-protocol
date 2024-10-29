@@ -14,8 +14,10 @@ task("deploy-novaro")
     await hre.run("compile");
     const { ethers, network } = hre;
     //print information
-    const [deployer] = await ethers.getSigners();
+    const [deployer, liquidityPool] = await ethers.getSigners();
     console.log("Deploying to network:", network.name);
+    console.log("Deployer account:", deployer.address);
+    console.log("LiquidityPool account:", liquidityPool.address);
 
     //deploy DynamicSocialToken
     const dynamicSocialTokenFactory = await ethers.getContractFactory(
@@ -47,18 +49,23 @@ task("deploy-novaro")
       mappingName: taskArgs.mappingName,
     });
 
-
     // deploy NovaroClient
     const NovaroClient = await ethers.getContractFactory(
       "NovaroClient",
       deployer
     );
-    const novaroClient = await NovaroClient.deploy(dynamicSocialToken.target);
+    const novaroClient = await NovaroClient.deploy(liquidityPool.address);
     console.log("NovaroClient deployed to:", novaroClient.target);
 
     // set feeder address for DynamicSocialToken
     await dynamicSocialToken.setFeeder(novaroClient.target);
     console.log("Feeder address set for DynamicSocialToken");
+
+    //set dst address for client
+    await novaroClient.setDynamicSocialToken(dynamicSocialToken.target);
+
+    //set registry address for client
+    await novaroClient.setRegistry(accountRegistry.target)
 
     // save contract addresses to file
     const addresses = {
@@ -71,7 +78,6 @@ task("deploy-novaro")
         AccountRegistry: accountRegistry.target,
       },
     };
-    // to save contract addresses to file
     const filePath = path.join(
       __dirname,
       `../deployments/${network.name}_addresses.json`

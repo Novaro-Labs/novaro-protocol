@@ -26,4 +26,6 @@ interface IDynamicSocialToken {
      * @param amount The amount by which the experience value will be increased.
      */
     function offChainFeed(address _owner, uint256 amount) external;
+
+    function setFeeder(address _feeder) external;
 }

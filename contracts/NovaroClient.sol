@@ -5,10 +5,11 @@ import {INovaroClient} from "./interfaces/INovaroClient.sol";
 import {NovaroErrors} from "./libraries/NovaroErrors.sol";
 import {NovaroDataTypes} from "./libraries/NovaroDataTypes.sol";
 import {NovaroEvents} from "./libraries/NovaroEvents.sol";
-import {IDynamicSocialToken} from "./interfaces/IDynamicSocialToken.sol";
 import {FollowerPassToken} from "./tokens/FollowerPassToken.sol";
-import {IERC6551Registry} from "./interfaces/IERC6551Registry.sol";
+import {ERC6551Registry} from "./account/ERC6551Registry.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {DynamicSocialToken} from "./tokens/DynamicSocialToken.sol";
+import "hardhat/console.sol";
 
 contract NovaroClient is INovaroClient , Ownable(msg.sender){
 
@@ -24,17 +25,20 @@ contract NovaroClient is INovaroClient , Ownable(msg.sender){
 
     address private pool;
 
-    IDynamicSocialToken private dst;
+    DynamicSocialToken private dst;
 
-    IERC6551Registry private registry;
+    ERC6551Registry private registry;
 
     constructor(address _pool) {
         pool = _pool;
     }
 
-    function setAddresses(address _dst, address _registry) onlyOwner external {
-        dst = IDynamicSocialToken(_dst);
-        registry = IERC6551Registry(_registry);
+    function setDynamicSocialToken(address _dst) onlyOwner external {
+        dst = DynamicSocialToken(_dst);
+    }
+
+    function setRegistry(address _registry) onlyOwner external {
+        registry = ERC6551Registry(_registry);
     }
 
     function offChainFeed(uint256 _amount) external {
@@ -57,6 +61,12 @@ contract NovaroClient is INovaroClient , Ownable(msg.sender){
             emit NovaroEvents.AccountAlreadyBound(msg.sender, _tokenBoundAccount);
             return _tokenBoundAccount;
         }
+        if (address (registry) == address(0)) {
+            revert NovaroErrors.InvalidERC6551Registry();
+        }
+        if (dst.ownerOf(tokenId)!= msg.sender) {
+            revert NovaroErrors.InvalidTokenOwner();
+        }
         address account = registry.createAccount(
             implementation,
             chainId,
@@ -65,7 +75,7 @@ contract NovaroClient is INovaroClient , Ownable(msg.sender){
             salt,
             initData
         );
-        tokenBoundAccounts[account] = tokenContract;
+        tokenBoundAccounts[msg.sender] = account;
         emit NovaroEvents.CreateAccount(msg.sender, account);
         return account;
     }
@@ -78,13 +88,13 @@ contract NovaroClient is INovaroClient , Ownable(msg.sender){
         string calldata _des
     ) external override {
         address _boundAccount = tokenBoundAccounts[msg.sender];
-        if (_boundAccount != address(0) ) {
+        if (_boundAccount == address(0) ) {
             revert NovaroErrors.EmptyTokenBoundAccount();
         }
         FollowerPassToken followerPassToken = new FollowerPassToken(
             _name,
             _symbol,
-            _boundAccount
+            address (msg.sender)
         );
         NovaroDataTypes.FollowerPassTokenData memory tokenData = NovaroDataTypes
             .FollowerPassTokenData({
@@ -106,25 +116,6 @@ contract NovaroClient is INovaroClient , Ownable(msg.sender){
             _imageUrl,
             _des
         );
-    }
-
-    function sell(address _token, uint256 _amount) external {
-        if (address(_token) == address(0)) {
-            revert NovaroErrors.InvalidAddress();
-        }
-        FollowerPassToken followerPassToken = FollowerPassToken(_token);
-        followerPassToken.transfer(pool, _amount);
-        emit NovaroEvents.SellFollowerPassToken(msg.sender, _token, _amount);
-    }
-
-    function buy(address _token, uint256 _amount) external {
-        if (address (_token) == address(0)) {
-            revert NovaroErrors.InvalidAddress();
-        }
-        FollowerPassToken followerPassToken = FollowerPassToken(_token);
-        followerPassToken.approve(msg.sender, _amount);
-        followerPassToken.transferFrom(pool, msg.sender, _amount);
-        emit NovaroEvents.BuyFollowerPassToken(msg.sender, _token, _amount);
     }
 
     //=========getter functions=========

@@ -13,6 +13,8 @@ library NovaroErrors {
     error DSTNotMinted();
     error InvalidTokenId();
     error InvalidDST();
+    error InvalidERC6551Registry();
+    error InvalidTokenOwner();
     error EmptyTokenBoundAccount();
     error EmptyFeeder();
 }

@@ -34,7 +34,7 @@ contract DynamicSocialToken is
 
     constructor() ERC721("Dynamic Social Token", "DST") {}
 
-    function setFeeder(address feeder) external onlyOwner {
+    function setFeeder(address feeder) external onlyOwner override {
         _feeder = feeder;
     }
 

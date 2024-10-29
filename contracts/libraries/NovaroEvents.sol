@@ -29,13 +29,13 @@ library NovaroEvents {
 
     event SellFollowerPassToken(
         address indexed seller,
-        address indexed token,
+        address indexed pool,
         uint256 indexed amount
     );
 
     event BuyFollowerPassToken(
+        address indexed pool,
         address indexed buyer,
-        address indexed token,
         uint256 indexed amount
     );
 
