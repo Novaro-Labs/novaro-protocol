@@ -11,23 +11,24 @@ contract FollowerPassToken is ERC20 {
         string memory name,
         string memory symbol,
         address owner
-    ) ERC20(name, symbol) {
+    ) ERC20(name, symbol) payable {
         _mint(owner, 10 ** 18);
     }
 
-    function sell(address _pool, uint256 _amount) external {
+    function sell(address _pool, uint256 _amount)  external {
         if (address(_pool) == address(0)) {
             revert NovaroErrors.InvalidAddress();
         }
-        super.transfer(_pool, _amount);
+        super.transfer((address(_pool)), _amount);
         emit NovaroEvents.SellFollowerPassToken(msg.sender, address(this), _amount);
     }
 
-    function buy(address _pool, uint256 _amount) external {
-        if (address (_pool) == address(0)) {
+    function buy(address _pool, uint256 _amount) external payable {
+        if (address(_pool) == address(0)) {
             revert NovaroErrors.InvalidAddress();
         }
-        super.transfer()(_pool, msg.sender, _amount);
+        bool sent = payable(_pool).send(msg.value);
+        require(sent, "Failed to send ether to pool");
         emit NovaroEvents.BuyFollowerPassToken(_pool, msg.sender, _amount);
     }
 }

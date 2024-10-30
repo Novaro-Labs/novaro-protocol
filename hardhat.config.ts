@@ -28,11 +28,10 @@ const config: HardhatUserConfig = {
     },
     localhost: {
       url: "http://127.0.0.1:8545",
-      chainId: 1337,
     },
     sepolia: {
       url: process.env.ALCHEMY_SEPOLIA_API_KEY,
-      accounts: [process.env.PRIVATE_DEPLOYER_KEY, process.env.PRIVATE_LIQUIDITY_POOL_KEY],
+      accounts: [process.env.PRIVATE_DEPLOYER_KEY],
     },
   },
   gasReporter: {

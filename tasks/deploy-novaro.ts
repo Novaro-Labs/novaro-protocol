@@ -14,10 +14,9 @@ task("deploy-novaro")
     await hre.run("compile");
     const { ethers, network } = hre;
     //print information
-    const [deployer, liquidityPool] = await ethers.getSigners();
+    const [deployer] = await ethers.getSigners();
     console.log("Deploying to network:", network.name);
     console.log("Deployer account:", deployer.address);
-    console.log("LiquidityPool account:", liquidityPool.address);
 
     //deploy DynamicSocialToken
     const dynamicSocialTokenFactory = await ethers.getContractFactory(
@@ -49,12 +48,20 @@ task("deploy-novaro")
       mappingName: taskArgs.mappingName,
     });
 
+     //deploy liquidity pool
+     const LiquidityPool = await ethers.getContractFactory(
+     "PoolMocker",
+          deployer
+     );
+     const liquidityPool = await LiquidityPool.deploy();
+
     // deploy NovaroClient
     const NovaroClient = await ethers.getContractFactory(
       "NovaroClient",
       deployer
     );
-    const novaroClient = await NovaroClient.deploy(liquidityPool.address);
+    console.log("LiquidityPool deployed to:", liquidityPool.target)
+    const novaroClient = await NovaroClient.deploy(liquidityPool.target);
     console.log("NovaroClient deployed to:", novaroClient.target);
 
     // set feeder address for DynamicSocialToken
@@ -71,7 +78,9 @@ task("deploy-novaro")
     const addresses = {
       network: network.name,
       feeder: novaroClient.target,
+      env: process.env.ENV,
       contracts: {
+        LiquidityPool: liquidityPool.target,
         DynamicSocialToken: dynamicSocialToken.target,
         NovaroClient: novaroClient.target,
         AccountFactory: accountFactory.target,
