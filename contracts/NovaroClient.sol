@@ -84,7 +84,7 @@ contract NovaroClient is INovaroClient , Ownable(msg.sender){
     function createFollowerPassToken(
         string calldata _name,
         string calldata _symbol,
-        string calldata _imageUrl,
+        string calldata _sourceId,
         string calldata _des
     ) external override {
         address _boundAccount = tokenBoundAccounts[msg.sender];
@@ -103,7 +103,7 @@ contract NovaroClient is INovaroClient , Ownable(msg.sender){
                 token: address(followerPassToken),
                 name: _name,
                 symbol: _symbol,
-                imageUrl: _imageUrl,
+                sourceId: _sourceId,
                 des: _des
             });
         tokens.push(address(followerPassToken));
@@ -113,7 +113,7 @@ contract NovaroClient is INovaroClient , Ownable(msg.sender){
             _boundAccount,
             _symbol,
             _name,
-            _imageUrl,
+            _sourceId,
             _des
         );
     }

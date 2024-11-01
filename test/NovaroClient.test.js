@@ -60,15 +60,15 @@ describe("NovaroClient", function () {
     //address1 creates a follower pass token
     const name = "FollowerPass";
     const symbol = "FP";
-    const imageUrl = "https://example.com/fp-image";
+    const sourceId = "15323";
     const description = "A test follower pass token";
 
     // Call createFollowerPassToken from owner account
     await expect(
-      novaroClient.connect(addr1).createFollowerPassToken(name, symbol, imageUrl, description)
+      novaroClient.connect(addr1).createFollowerPassToken(name, symbol, sourceId, description)
     )
       .to.emit(novaroClient, "CreateFollowerPassToken")
-      .withArgs(addr1.address, preComputedAddress, symbol, name, imageUrl, description);
+      .withArgs(addr1.address, preComputedAddress, symbol, name, sourceId, description);
 
     const tokens = await novaroClient.getTokenAddresses();
     const token = tokens[0];

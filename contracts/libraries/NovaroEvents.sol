@@ -19,7 +19,7 @@ library NovaroEvents {
         address indexed boundAccount,
         string indexed symbol,
         string name,
-        string imageUri,
+        string sourceId,
         string des
     );
 

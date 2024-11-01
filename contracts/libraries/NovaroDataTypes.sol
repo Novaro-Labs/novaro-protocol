@@ -27,7 +27,7 @@ library NovaroDataTypes {
         address token;
         string name;
         string symbol;
-        string imageUrl;
+        string sourceId;
         string des;
     }
 }
