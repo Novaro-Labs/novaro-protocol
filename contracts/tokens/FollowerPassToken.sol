@@ -4,15 +4,28 @@ pragma solidity ^0.8.0;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {NovaroEvents} from "../libraries/NovaroEvents.sol";
 import {NovaroErrors} from "../libraries/NovaroErrors.sol";
-contract FollowerPassToken is ERC20 {
+import {NovaroStorage} from "../libraries/NovaroStorage.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "hardhat/console.sol";
+import {ERC6551Account} from "../account/ERC6551Account.sol";
+
+contract FollowerPassToken is ERC20, Ownable(msg.sender){
     string public constant NAME = "FollowerPass Token";
+
+    mapping(address => address) public tokenBoundAccounts;
 
     constructor(
         string memory name,
         string memory symbol,
-        address owner
+        address _owner,
+        address _tokenBoundAccount
     ) ERC20(name, symbol) payable {
-        _mint(owner, 10 ** 18);
+        _mint(_tokenBoundAccount, 10 ** 18);
+        tokenBoundAccounts[_owner] = _tokenBoundAccount;
+    }
+
+    function _msgSender() internal view override returns (address) {
+        return tokenBoundAccounts[msg.sender];
     }
 
     function sell(address _pool, uint256 _amount)  external {
