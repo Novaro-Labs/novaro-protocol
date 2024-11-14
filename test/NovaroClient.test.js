@@ -46,7 +46,6 @@ describe("NovaroClient", function () {
     const ERC6551Account = await ethers.getContractFactory("ERC6551Account");
     accountFactory = await ERC6551Account.deploy();
     const chainId = await hre.network.provider.send('eth_chainId');
-    console.log("chainId", chainId);
     // Compute the pre-computed address of the account with Create2
     preComputedAddress = await registryFactory.account(accountFactory.target, chainId, dst.target, tokenId, salt);
     // Create an account
@@ -80,16 +79,19 @@ describe("NovaroClient", function () {
     const sellAmount = 10n ** 18n;
     //===================== Sell operation ========================
     //balance before sell
-    const sellerBalance = await followerPassToken.balanceOf(addr1);
+    const sellerBalance = await followerPassToken.balanceOf(preComputedAddress);
     const poolBalance = await followerPassToken.balanceOf(poolMocker.target);
     expect(sellerBalance).to.equal(sellAmount);
     expect(poolBalance).to.equal(0);
 
     //approve pool for spending
-    await followerPassToken.connect(addr1).approve(followerPassToken.target, sellAmount);
-    //sell operation
+    await followerPassToken.connect(addr1).approve(preComputedAddress, sellAmount);
+    await followerPassToken.connect(addr1).approve(addr1.address, sellAmount);
+    await followerPassToken.connect(addr1).approve(poolMocker.target, sellAmount);
 
+    //sell operation
     await followerPassToken.connect(addr1).sell(poolMocker.target, sellAmount);
+
     //balance after sell
     const sellerBalanceAfter = await followerPassToken.balanceOf(addr1);
     const poolBalanceAfter = await followerPassToken.balanceOf(poolMocker.target);
