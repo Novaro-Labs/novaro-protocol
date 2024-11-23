@@ -10,6 +10,7 @@ import {ERC6551Registry} from "./account/ERC6551Registry.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {DynamicSocialToken} from "./tokens/DynamicSocialToken.sol";
 import {NovaroStorage} from "./libraries/NovaroStorage.sol";
+import {ISocialOracle} from"./interfaces/ISocialOracle.sol";
 import {console} from "hardhat/console.sol";
 
 contract NovaroClient is INovaroClient, Ownable(msg.sender){
@@ -32,12 +33,29 @@ contract NovaroClient is INovaroClient, Ownable(msg.sender){
         _clientStorage.registry = ERC6551Registry(_registry);
     }
 
-    function offChainFeed(uint256 _amount) external {
+    function setSocialOracle(address _socialOracle) onlyOwner external {
+        _clientStorage.socialOracle = ISocialOracle(_socialOracle);
+    }
+
+    function offChainFeed() external {
         DynamicSocialToken _dst = _clientStorage.dst;
         if (address (_dst) == address(0)) {
             revert NovaroErrors.InvalidDST();
         }
-        _dst.offChainFeed(msg.sender,_amount);
+        mapping(address => uint256) storage lastCallTime = _clientStorage.lastCallTime;
+        // only feed DST every 24 hours
+        uint256 currentTime = block.timestamp;
+        if (currentTime < lastCallTime[msg.sender] + 24 hours) {
+            revert NovaroErrors.Within24HourPeriod();
+        }
+        // update last call time
+        lastCallTime[msg.sender] = currentTime;
+        ISocialOracle _socialOracle = _clientStorage.socialOracle;
+        if (address(_socialOracle) == address(0)) {
+            revert NovaroErrors.InvalidSocialOracle();
+        }
+        uint256 _socialScore = _socialOracle.getSocialScore(msg.sender);
+        _dst.offChainFeed(msg.sender,_socialScore);
     }
 
     function createOrFetchAccount(

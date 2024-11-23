@@ -48,20 +48,27 @@ task("deploy-novaro")
       mappingName: taskArgs.mappingName,
     });
 
-     //deploy liquidity pool
-     const LiquidityPool = await ethers.getContractFactory(
+    //deploy mock social oracle
+    const MockSocialOracle = await ethers.getContractFactory(
+      "SocialOracleMocker",
+      deployer
+    );
+    const mockSocialOracle = await MockSocialOracle.deploy();
+    console.log("MockSocialOracle deployed to:", mockSocialOracle.target);
+     //deploy mock liquidity pool
+     const MockLiquidityPool = await ethers.getContractFactory(
      "PoolMocker",
           deployer
      );
-     const liquidityPool = await LiquidityPool.deploy();
+     const mockLiquidityPool = await MockLiquidityPool.deploy();
 
     // deploy NovaroClient
     const NovaroClient = await ethers.getContractFactory(
       "NovaroClient",
       deployer
     );
-    console.log("LiquidityPool deployed to:", liquidityPool.target)
-    const novaroClient = await NovaroClient.deploy(liquidityPool.target);
+    console.log("Mock LiquidityPool deployed to:", mockLiquidityPool.target)
+    const novaroClient = await NovaroClient.deploy(mockLiquidityPool.target);
     console.log("NovaroClient deployed to:", novaroClient.target);
 
     // set feeder address for DynamicSocialToken
@@ -74,13 +81,16 @@ task("deploy-novaro")
     //set registry address for client
     await novaroClient.setRegistry(accountRegistry.target)
 
+    //set social oracle address for client
+    await novaroClient.setSocialOracle(mockSocialOracle.target)
+
     // save contract addresses to file
     const addresses = {
       network: network.name,
       feeder: novaroClient.target,
-      env: process.env.ENV,
       contracts: {
-        LiquidityPool: liquidityPool.target,
+        MockLiquidityPool: mockLiquidityPool.target,
+        MockSocialOracle: mockSocialOracle.target,
         DynamicSocialToken: dynamicSocialToken.target,
         NovaroClient: novaroClient.target,
         AccountFactory: accountFactory.target,

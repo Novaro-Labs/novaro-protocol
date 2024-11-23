@@ -17,4 +17,6 @@ library NovaroErrors {
     error InvalidTokenOwner();
     error EmptyTokenBoundAccount();
     error EmptyFeeder();
+    error Within24HourPeriod();
+    error InvalidSocialOracle();
 }

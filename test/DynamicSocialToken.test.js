@@ -4,7 +4,7 @@ const { readIntervalsFromFile } = require("../helpers/file-helper");
 const { INTERVAL_CONFIG_FILE } = require("../helpers/constants");
 
 describe("DynamicSocialToken", function () {
-    let DynamicSocialToken, dynamicSocialToken, deployer, addr1, novaroClient;
+    let DynamicSocialToken, dynamicSocialToken, deployer, addr1, novaroClient, socialOracle;
     let intervals;
     const initialExp = 100;
     const tokenId = 2;
@@ -20,32 +20,16 @@ describe("DynamicSocialToken", function () {
         novaroClient = await NovaroClient.deploy(dynamicSocialToken.target);
         await dynamicSocialToken.setFeeder(novaroClient.target);
         await novaroClient.setDynamicSocialToken(dynamicSocialToken.target)
+
+        const SocialOracle = await ethers.getContractFactory("SocialOracleMocker");
+        socialOracle = await SocialOracle.deploy();
+        novaroClient.setSocialOracle(socialOracle.target);
+
     });
 
     it("should have the correct name and symbol", async function () {
         expect(await dynamicSocialToken.name()).to.equal("Dynamic Social Token");
         expect(await dynamicSocialToken.symbol()).to.equal("DST");
-    });
-
-    it("should correctly feed off-chain data to a DST token", async function () {
-        await dynamicSocialToken.readInterval(intervals);
-        await dynamicSocialToken.mint(addr1.address, initialExp);
-        let dstData = await dynamicSocialToken.getDstData(tokenId);
-        expect(dstData.exp).to.equal(initialExp);
-
-        const feedAmount = 50;
-        await novaroClient.connect(addr1).offChainFeed(feedAmount);
-
-        dstData = await dynamicSocialToken.getDstData(tokenId);
-        expect(dstData.exp).to.equal(initialExp + feedAmount);
-
-        const [level, , url] = await dynamicSocialToken.getDstData(tokenId);
-        const { lv: expectedLevel, url: expectedUrl } = intervals.find(
-            (interval) =>
-                initialExp + feedAmount > interval.left &&
-                initialExp + feedAmount <= interval.right
-        );
-        verifyDstData(dstData, expectedLevel, initialExp + feedAmount, expectedUrl);
     });
 
     it("should locate right metadata as per json file", async function () {
@@ -56,25 +40,53 @@ describe("DynamicSocialToken", function () {
         verifyDstData(dstData0, 1, 0, intervals[0].url);
 
         //offChainFeed
-        await novaroClient.connect(addr1).offChainFeed(50);
+        await novaroClient.connect(addr1).offChainFeed();
         const dstData1 = await dynamicSocialToken.getDstData(tokenId);
-        verifyDstData(dstData1, 1, 50, intervals[0].url);
+        verifyDstData(dstData1, 2, 150, intervals[1].url);
 
-        await novaroClient.connect(addr1).offChainFeed(50);
+        await oneDayPassAndMintNewBlock();
+
+        await novaroClient.connect(addr1).offChainFeed();
         const dstData2 = await dynamicSocialToken.getDstData(tokenId);
-        verifyDstData(dstData2, 2, 100, intervals[1].url);
+        verifyDstData(dstData2, 4, 300, intervals[3].url);
 
-        await novaroClient.connect(addr1).offChainFeed(115);
+        await oneDayPassAndMintNewBlock();
+
+
+        await novaroClient.connect(addr1).offChainFeed();
         const dstData3 = await dynamicSocialToken.getDstData(tokenId);
-        verifyDstData(dstData3, 3, 215, intervals[2].url);
+        verifyDstData(dstData3, 5, 450, intervals[4].url);
 
-        await novaroClient.connect(addr1).offChainFeed(285);
+        await oneDayPassAndMintNewBlock();
+
+
+        await novaroClient.connect(addr1).offChainFeed();
         const dstData4 = await dynamicSocialToken.getDstData(tokenId);
-        verifyDstData(dstData4, 6, 500, intervals[5].url);
+        verifyDstData(dstData4, 6, 600, intervals[5].url);
 
-        await novaroClient.connect(addr1).offChainFeed(225);
+        await oneDayPassAndMintNewBlock();
+
+        await novaroClient.connect(addr1).offChainFeed();
         const dstData5 = await dynamicSocialToken.getDstData(tokenId);
-        verifyDstData(dstData5, 6, 725, intervals[5].url);
+        verifyDstData(dstData5, 6, 750, intervals[5].url);
+    });
+
+    it("should revert if off-chain data is within 24 hours", async function () {
+        //mint
+        await dynamicSocialToken.readInterval(intervals);
+        await dynamicSocialToken.mint(addr1.address, 0);
+        const dstData0 = await dynamicSocialToken.getDstData(tokenId);
+        verifyDstData(dstData0, 1, 0, intervals[0].url);
+
+        //offChainFeed
+        await novaroClient.connect(addr1).offChainFeed();
+        const dstData1 = await dynamicSocialToken.getDstData(tokenId);
+        verifyDstData(dstData1, 2, 150, intervals[1].url);
+
+        //feed again within 24 hours
+        await expect(
+            novaroClient.connect(addr1).offChainFeed()
+        ).to.be.revertedWithCustomError(novaroClient, "Within24HourPeriod");
     });
 
     it("should revert if intervals are not set", async function () {
@@ -111,4 +123,10 @@ function verifyDstData(dstData, expectedLevel, expectedExp, expectedUrl) {
     expect(level).to.equal(expectedLevel);
     expect(exp).to.equal(expectedExp);
     expect(url).to.equal(expectedUrl);
+}
+
+async function oneDayPassAndMintNewBlock() {
+    const oneDayInSeconds = 24 * 60 * 60;
+    await ethers.provider.send("evm_increaseTime", [oneDayInSeconds]);
+    await ethers.provider.send("evm_mine");
 }

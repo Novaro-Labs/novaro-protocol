@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import "../account/ERC6551Registry.sol";
 import "../tokens/DynamicSocialToken.sol";
 import "./NovaroDataTypes.sol";
+import "../interfaces/ISocialOracle.sol";
 
 library NovaroStorage {
 
@@ -17,9 +18,12 @@ library NovaroStorage {
         mapping(address => string)  systemIdentifiers;
         //erc6551 account bound to each address
         mapping(address => address) tokenBoundAccounts;
+        //Last time the user called the off-chain feed function
+        mapping(address => uint256)  lastCallTime;
         address pool;
         DynamicSocialToken dst;
         ERC6551Registry  registry;
+        ISocialOracle socialOracle;
     }
 
     function _getClientStorage() public pure returns (ClientStorage storage clientStorage) {
