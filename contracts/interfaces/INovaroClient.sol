@@ -5,10 +5,4 @@ import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Recei
 
 interface INovaroClient {
 
-    function createFollowerPassToken(
-        string calldata name,
-        string calldata symbol,
-        string calldata imageUrl,
-        string calldata des
-    ) external;
 }

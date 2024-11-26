@@ -5,6 +5,7 @@ import "../account/ERC6551Registry.sol";
 import "../tokens/DynamicSocialToken.sol";
 import "./NovaroDataTypes.sol";
 import "../interfaces/ISocialOracle.sol";
+import {FollowerPassCommunity} from "../tokens/FollowerPassCommunity.sol";
 
 library NovaroStorage {
 
@@ -14,6 +15,8 @@ library NovaroStorage {
         address[] tokens;
         //onchain data for follower pass tokens
         mapping(address => NovaroDataTypes.FollowerPassTokenData) tokenDataMapping;
+        //community data
+        address[] communities;
         //system identifiers for each account
         mapping(address => string)  systemIdentifiers;
         //erc6551 account bound to each address

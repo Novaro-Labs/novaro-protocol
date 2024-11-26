@@ -10,6 +10,7 @@ import "hardhat/console.sol";
 import {ERC6551Account} from "../account/ERC6551Account.sol";
 
 contract FollowerPassToken is ERC20, Ownable(msg.sender){
+
     string public constant NAME = "FollowerPass Token";
 
     mapping(address => address) public tokenBoundAccounts;
