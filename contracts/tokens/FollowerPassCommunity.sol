@@ -7,11 +7,13 @@ import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.so
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {NovaroEvents} from "../libraries/NovaroEvents.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {NovaroStorage} from "../libraries/NovaroStorage.sol";
+import {NovaroDataTypes} from "../libraries/NovaroDataTypes.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {console} from "hardhat/console.sol";
+import {NovaroClient} from "../NovaroClient.sol";
 
-contract FollowerPassCommunity is ERC4626, Ownable(msg.sender) {
+contract FollowerPassCommunity is ERC4626 {
 
     string public constant NAME = "Follower Pass Community";
 
@@ -29,6 +31,8 @@ contract FollowerPassCommunity is ERC4626, Ownable(msg.sender) {
 
     address private admin;
 
+    address private novaroClient;
+
     mapping(address => bool) public isMember; // Mapping of members to their membership status
 
     constructor(
@@ -36,27 +40,31 @@ contract FollowerPassCommunity is ERC4626, Ownable(msg.sender) {
         string memory _name,
         string memory _symbol,
         address _treasury,
-        address _boundAccount
+        address _admin,
+        address _boundAccount,
+        address _novaroClient
     )
         ERC4626(_asset) // Initialize the vault with the asset
         ERC20(_name, _symbol) // Set the custom share token name and symbol
     {
-        admin = msg.sender;
+        admin = _admin;
         treasury = _treasury;
         boundAccount = _boundAccount;
+        novaroClient = _novaroClient;
     }
 
     function setConfig(
         uint256 _fee,
         uint256 _exchangeRate
-    ) external onlyOwner{
+    ) external {
+        require(msg.sender == admin, "Only admin can set the config");
         fee = _fee;
         exchangeRate = _exchangeRate;
     }
 
     function join() external {
         require(IERC20(asset()).balanceOf(msg.sender) >= fee, "You must have some balance to join the community");
-        SafeERC20.safeTransferFrom(IERC20(asset()), msg.sender, treasury, fee);
+        IERC20(asset()).transferFrom(msg.sender, treasury, fee);
         memberCounter++;
         isMember[msg.sender] = true;
         emit NovaroEvents.JoinCommunity(msg.sender, address(this));
@@ -73,6 +81,7 @@ contract FollowerPassCommunity is ERC4626, Ownable(msg.sender) {
         uint256 assets,
         address receiver
     ) public override returns (uint256) {
+        require(isMember[msg.sender], "You must join the community to deposit");
         uint256 share = super.deposit(assets, receiver);
         emit NovaroEvents.Deposit(receiver, assets, share);
         return share;
@@ -92,14 +101,27 @@ contract FollowerPassCommunity is ERC4626, Ownable(msg.sender) {
         string calldata _symbol,
         string calldata _sourceId,
         string calldata _des
-    ) external onlyOwner {
+    ) external {
+        require(msg.sender == admin, "Only admin can create follower pass token");
         FollowerPassToken _followerPassToken = new FollowerPassToken(
             _name,
             _symbol,
             address (msg.sender),
+            address (this),
             boundAccount
         );
         followerPassToken = _followerPassToken;
+        NovaroDataTypes.FollowerPassTokenData memory tokenData = NovaroDataTypes
+            .FollowerPassTokenData({
+            deployer: msg.sender,
+            boundAccount: boundAccount,
+            token: address(followerPassToken),
+            name: _name,
+            symbol: _symbol,
+            sourceId: _sourceId,
+            des: _des
+        });
+        NovaroClient(novaroClient).recordToken(address(this), tokenData);
         emit NovaroEvents.CreateFollowerPassToken(
             msg.sender,
             boundAccount,
@@ -112,10 +134,12 @@ contract FollowerPassCommunity is ERC4626, Ownable(msg.sender) {
 
     function swap(uint256 amount) external {
         require(address(followerPassToken) != address(0), "No follower pass token found");
+        require(isMember[msg.sender], "You must join the community to swap");
         require(balanceOf(msg.sender) >= amount, "You must have some share token to swap");
         uint256 followerPassAmount = amount * exchangeRate / 100;
-        require(followerPassToken.balanceOf(boundAccount) >= followerPassAmount, "Not enough follower pass token in the vault");
-        SafeERC20.safeTransferFrom(followerPassToken, boundAccount, msg.sender, followerPassAmount);
+        IERC20(this).transferFrom(msg.sender, address(this), amount);
+        require(followerPassToken.balanceOf(address(this)) >= followerPassAmount, "Not enough follower pass token in the community");
+        IERC20(followerPassToken).transfer(msg.sender, followerPassAmount);
         emit NovaroEvents.Swap(boundAccount, msg.sender, followerPassAmount);
     }
 

@@ -12,11 +12,10 @@ library NovaroStorage {
     bytes32 internal constant CLIENT_STORAGE_SLOT = keccak256('novaro.client.storage');
 
     struct ClientStorage {
-        address[] tokens;
-        //onchain data for follower pass tokens
+        NovaroDataTypes.FollowerPassTokenData[] tokens;
+        FollowerPassCommunity[] communities;
+        //onchain data for follower pass tokens with community mapping
         mapping(address => NovaroDataTypes.FollowerPassTokenData) tokenDataMapping;
-        //community data
-        address[] communities;
         //system identifiers for each account
         mapping(address => string)  systemIdentifiers;
         //erc6551 account bound to each address

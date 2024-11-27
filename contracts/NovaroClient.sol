@@ -107,11 +107,19 @@ contract NovaroClient is INovaroClient, Ownable(msg.sender){
             share_token_name,
             share_token_symbol,
             treasury,
-            _clientStorage.tokenBoundAccounts[msg.sender]
+            msg.sender,
+            _clientStorage.tokenBoundAccounts[msg.sender],
+            address (this)
         );
-        _clientStorage.communities.push(address(followerPassCommunity));
+        _clientStorage.communities.push(followerPassCommunity);
         emit NovaroEvents.CreateCommunityToken(msg.sender, followerPassCommunity);
         return address(followerPassCommunity);
+    }
+
+    function recordToken(address _community, NovaroDataTypes.FollowerPassTokenData memory _token) external {
+        _clientStorage.tokenDataMapping[_community] = _token;
+        _clientStorage.tokens.push(_token);
+        _clientStorage.communities.push(FollowerPassCommunity(_community));
     }
 
     //=========getter functions=========
@@ -120,7 +128,7 @@ contract NovaroClient is INovaroClient, Ownable(msg.sender){
         return _clientStorage.systemIdentifiers[_owner];
     }
 
-    function getCommunities() external view returns (address[] memory) {
+    function getCommunities() external view returns (FollowerPassCommunity[] memory) {
         return _clientStorage.communities;
     }
 
@@ -134,6 +142,10 @@ contract NovaroClient is INovaroClient, Ownable(msg.sender){
 
     function getRegistry() external view returns (address) {
         return address(_clientStorage.registry);
+    }
+
+    function getBoundAccount(address _owner) external view returns (address) {
+        return _clientStorage.tokenBoundAccounts[_owner];
     }
 
 }
