@@ -55,54 +55,54 @@ describe("NovaroClient", function () {
   });
 
 
-  it("Should create a FollowerPassToken successfully", async function () {
-    //address1 creates a follower pass token
-    const name = "FollowerPass";
-    const symbol = "FP";
-    const sourceId = "15323";
-    const description = "A test follower pass token";
-
-    // Call createFollowerPassToken from owner account
-    await expect(
-      novaroClient.connect(addr1).createFollowerPassToken(name, symbol, sourceId, description)
-    )
-      .to.emit(novaroClient, "CreateFollowerPassToken")
-      .withArgs(addr1.address, preComputedAddress, symbol, name, sourceId, description);
-
-    const tokens = await novaroClient.getTokenAddresses();
-    const token = tokens[0];
-    const FollowerPassToken = await hre.ethers.getContractFactory(
-      "FollowerPassToken"
-    );
-
-    const followerPassToken = FollowerPassToken.attach(token);
-    const sellAmount = 10n ** 18n;
-    //===================== Sell operation ========================
-    //balance before sell
-    const sellerBalance = await followerPassToken.balanceOf(preComputedAddress);
-    const poolBalance = await followerPassToken.balanceOf(poolMocker.target);
-    expect(sellerBalance).to.equal(sellAmount);
-    expect(poolBalance).to.equal(0);
-
-    //approve pool for spending
-    await followerPassToken.connect(addr1).approve(preComputedAddress, sellAmount);
-    await followerPassToken.connect(addr1).approve(addr1.address, sellAmount);
-    await followerPassToken.connect(addr1).approve(poolMocker.target, sellAmount);
-
-    //sell operation
-    await followerPassToken.connect(addr1).sell(poolMocker.target, sellAmount);
-
-    //balance after sell
-    const sellerBalanceAfter = await followerPassToken.balanceOf(addr1);
-    const poolBalanceAfter = await followerPassToken.balanceOf(poolMocker.target);
-    expect(sellerBalanceAfter).to.equal(0);
-    expect(poolBalanceAfter).to.equal(sellAmount);
-    //===================== Buy operation ===================================
-    const ethValue = ethers.parseUnits("1", "ether");
-    const amountToBuy = ethers.parseUnits("100", 18);
-    const initialPoolBalance = await ethers.provider.getBalance(poolMocker.target);
-    await followerPassToken.connect(addr1).buy(poolMocker.target, amountToBuy, { value: ethValue });
-    const finalPoolBalance = await ethers.provider.getBalance(poolMocker.target);
-    expect(finalPoolBalance).to.equal(ethValue);
-  });
+//  it("Should create a FollowerPassToken successfully", async function () {
+//    //address1 creates a follower pass token
+//    const name = "FollowerPass";
+//    const symbol = "FP";
+//    const sourceId = "15323";
+//    const description = "A test follower pass token";
+//
+//    // Call createFollowerPassToken from owner account
+//    await expect(
+//      novaroClient.connect(addr1).createFollowerPassToken(name, symbol, sourceId, description)
+//    )
+//      .to.emit(novaroClient, "CreateFollowerPassToken")
+//      .withArgs(addr1.address, preComputedAddress, symbol, name, sourceId, description);
+//
+//    const tokens = await novaroClient.getTokenAddresses();
+//    const token = tokens[0];
+//    const FollowerPassToken = await hre.ethers.getContractFactory(
+//      "FollowerPassToken"
+//    );
+//
+//    const followerPassToken = FollowerPassToken.attach(token);
+//    const sellAmount = 10n ** 18n;
+//    //===================== Sell operation ========================
+//    //balance before sell
+//    const sellerBalance = await followerPassToken.balanceOf(preComputedAddress);
+//    const poolBalance = await followerPassToken.balanceOf(poolMocker.target);
+//    expect(sellerBalance).to.equal(sellAmount);
+//    expect(poolBalance).to.equal(0);
+//
+//    //approve pool for spending
+//    await followerPassToken.connect(addr1).approve(preComputedAddress, sellAmount);
+//    await followerPassToken.connect(addr1).approve(addr1.address, sellAmount);
+//    await followerPassToken.connect(addr1).approve(poolMocker.target, sellAmount);
+//
+//    //sell operation
+//    await followerPassToken.connect(addr1).sell(poolMocker.target, sellAmount);
+//
+//    //balance after sell
+//    const sellerBalanceAfter = await followerPassToken.balanceOf(addr1);
+//    const poolBalanceAfter = await followerPassToken.balanceOf(poolMocker.target);
+//    expect(sellerBalanceAfter).to.equal(0);
+//    expect(poolBalanceAfter).to.equal(sellAmount);
+//    //===================== Buy operation ===================================
+//    const ethValue = ethers.parseUnits("1", "ether");
+//    const amountToBuy = ethers.parseUnits("100", 18);
+//    const initialPoolBalance = await ethers.provider.getBalance(poolMocker.target);
+//    await followerPassToken.connect(addr1).buy(poolMocker.target, amountToBuy, { value: ethValue });
+//    const finalPoolBalance = await ethers.provider.getBalance(poolMocker.target);
+//    expect(finalPoolBalance).to.equal(ethValue);
+//  });
 });

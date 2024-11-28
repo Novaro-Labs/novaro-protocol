@@ -11,11 +11,15 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {DynamicSocialToken} from "./tokens/DynamicSocialToken.sol";
 import {NovaroStorage} from "./libraries/NovaroStorage.sol";
 import {ISocialOracle} from"./interfaces/ISocialOracle.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {console} from "hardhat/console.sol";
+import {FollowerPassCommunity} from "./tokens/FollowerPassCommunity.sol";
 
 contract NovaroClient is INovaroClient, Ownable(msg.sender){
 
     string public constant NAME =  "NovaroClient";
+
+    address private treasury;
 
     using NovaroStorage for NovaroStorage.ClientStorage;
 
@@ -23,6 +27,7 @@ contract NovaroClient is INovaroClient, Ownable(msg.sender){
 
     constructor(address _pool) {
         _clientStorage.pool = _pool;
+        treasury = msg.sender;
     }
 
     function setDynamicSocialToken(address _dst) onlyOwner external {
@@ -92,42 +97,29 @@ contract NovaroClient is INovaroClient, Ownable(msg.sender){
     }
 
 
-    function createFollowerPassToken(
-        string calldata _name,
-        string calldata _symbol,
-        string calldata _sourceId,
-        string calldata _des
-    ) external override {
-        address _boundAccount = _clientStorage.tokenBoundAccounts[msg.sender];
-        if (_boundAccount == address(0) ) {
-            revert NovaroErrors.EmptyTokenBoundAccount();
-        }
-        FollowerPassToken followerPassToken = new FollowerPassToken(
-            _name,
-            _symbol,
-        msg.sender,
-    _boundAccount
-        );
-        NovaroDataTypes.FollowerPassTokenData memory tokenData = NovaroDataTypes
-            .FollowerPassTokenData({
-                deployer: msg.sender,
-                boundAccount: _boundAccount,
-                token: address(followerPassToken),
-                name: _name,
-                symbol: _symbol,
-                sourceId: _sourceId,
-                des: _des
-            });
-        _clientStorage.tokens.push(address(followerPassToken));
-        _clientStorage.tokenDataMapping[address(followerPassToken)] = tokenData;
-        emit NovaroEvents.CreateFollowerPassToken(
+    function createCommunityToken(
+        address underlying_asset,
+        string calldata share_token_name,
+        string calldata share_token_symbol
+    ) external returns (address){
+        FollowerPassCommunity followerPassCommunity = new FollowerPassCommunity(
+            IERC20(underlying_asset),
+            share_token_name,
+            share_token_symbol,
+            treasury,
             msg.sender,
-            _boundAccount,
-            _symbol,
-            _name,
-            _sourceId,
-            _des
+            _clientStorage.tokenBoundAccounts[msg.sender],
+            address (this)
         );
+        _clientStorage.communities.push(followerPassCommunity);
+        emit NovaroEvents.CreateCommunityToken(msg.sender, followerPassCommunity);
+        return address(followerPassCommunity);
+    }
+
+    function recordToken(address _community, NovaroDataTypes.FollowerPassTokenData memory _token) external {
+        _clientStorage.tokenDataMapping[_community] = _token;
+        _clientStorage.tokens.push(_token);
+        _clientStorage.communities.push(FollowerPassCommunity(_community));
     }
 
     //=========getter functions=========
@@ -136,8 +128,12 @@ contract NovaroClient is INovaroClient, Ownable(msg.sender){
         return _clientStorage.systemIdentifiers[_owner];
     }
 
-    function getBoundAccount(address _owner) external view returns (address) {
-        return _clientStorage.tokenBoundAccounts[_owner];
+    function getCommunities() external view returns (FollowerPassCommunity[] memory) {
+        return _clientStorage.communities;
+    }
+
+    function getCommunitiesCount() external view returns (uint256) {
+        return _clientStorage.communities.length;
     }
 
     function getDynamicSocialToken() external view returns (address) {
@@ -148,18 +144,8 @@ contract NovaroClient is INovaroClient, Ownable(msg.sender){
         return address(_clientStorage.registry);
     }
 
-    function getTokenAddresses() external view returns (address[] memory) {
-        return _clientStorage.tokens;
+    function getBoundAccount(address _owner) external view returns (address) {
+        return _clientStorage.tokenBoundAccounts[_owner];
     }
 
-    function getAllFollowerPassToken() external view returns (NovaroDataTypes.FollowerPassTokenData[] memory) {
-        //cache storage on blockchain to reduce gas usage
-        mapping(address => NovaroDataTypes.FollowerPassTokenData) storage _tokenDataMapping = _clientStorage.tokenDataMapping;
-        address[] memory _tokensAddresses = _clientStorage.tokens;
-        NovaroDataTypes.FollowerPassTokenData[] memory _tokens = new NovaroDataTypes.FollowerPassTokenData[](_tokensAddresses.length);
-        for (uint256 i = 0; i < _tokensAddresses.length; i++) {
-            _tokens[i] = _tokenDataMapping[_tokensAddresses[i]];
-        }
-        return _tokens;
-    }
 }

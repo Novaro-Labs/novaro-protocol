@@ -5,14 +5,16 @@ import "../account/ERC6551Registry.sol";
 import "../tokens/DynamicSocialToken.sol";
 import "./NovaroDataTypes.sol";
 import "../interfaces/ISocialOracle.sol";
+import {FollowerPassCommunity} from "../tokens/FollowerPassCommunity.sol";
 
 library NovaroStorage {
 
     bytes32 internal constant CLIENT_STORAGE_SLOT = keccak256('novaro.client.storage');
 
     struct ClientStorage {
-        address[] tokens;
-        //onchain data for follower pass tokens
+        NovaroDataTypes.FollowerPassTokenData[] tokens;
+        FollowerPassCommunity[] communities;
+        //onchain data for follower pass tokens with community mapping
         mapping(address => NovaroDataTypes.FollowerPassTokenData) tokenDataMapping;
         //system identifiers for each account
         mapping(address => string)  systemIdentifiers;
