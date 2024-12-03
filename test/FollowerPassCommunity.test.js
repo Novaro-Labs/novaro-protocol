@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { readIntervalsFromFile } = require("../helpers/file-helper");
-const { INTERVAL_CONFIG_FILE } = require("../helpers/constants");
+const { fromJson } = require("../helpers/file-helper");
+const { INTERVAL_CONFIG_PATH } = require("../helpers/constants");
 
 describe("FollowerPassCommunity Tests", function () {
     let deployer, admin, user, treasury, boundAccount;
@@ -16,7 +16,7 @@ describe("FollowerPassCommunity Tests", function () {
         // Deploy the DynamicSocialToken (DST) contract
         const DynamicSocialToken = await ethers.getContractFactory("DynamicSocialToken");
         dst = await DynamicSocialToken.deploy();
-        intervals = readIntervalsFromFile(INTERVAL_CONFIG_FILE);
+        intervals = fromJson(INTERVAL_CONFIG_PATH);
         await dst.readInterval(intervals);
         await dst.mint(user.address, initialExp);
 

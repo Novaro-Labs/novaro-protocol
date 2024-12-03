@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { readIntervalsFromFile } = require("../helpers/file-helper");
-const { INTERVAL_CONFIG_FILE } = require("../helpers/constants");
+const { fromJson } = require("../helpers/file-helper");
+const { INTERVAL_CONFIG_PATH } = require("../helpers/constants");
 
 describe("DynamicSocialToken", function () {
     let DynamicSocialToken, dynamicSocialToken, deployer, addr1, novaroClient, socialOracle;
@@ -14,7 +14,7 @@ describe("DynamicSocialToken", function () {
         DynamicSocialToken = await ethers.getContractFactory("DynamicSocialToken");
         dynamicSocialToken = await DynamicSocialToken.deploy();
         [deployer, addr1] = await ethers.getSigners();
-        intervals = readIntervalsFromFile(INTERVAL_CONFIG_FILE);
+        intervals = fromJson(INTERVAL_CONFIG_PATH);
 
         const NovaroClient = await ethers.getContractFactory("NovaroClient");
         novaroClient = await NovaroClient.deploy(dynamicSocialToken.target);

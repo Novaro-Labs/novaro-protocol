@@ -1,45 +1,25 @@
-# Hardhat Tasks for Novaro Deployment and Configuration
+Tasks Overview
 
-This project includes custom Hardhat tasks to deploy and configure the `DynamicSocialToken` (DST) and `StakingPool` contracts.
+1. Deploy Novaro Protocol
 
-## Tasks
+Run the following command to deploy the Novaro protocol on the specified network:
 
-### Deploy and Configure DST
+npx hardhat deploy-novaro --network <network_name>
 
-This task deploys the `DynamicSocialToken` (DST) and `StakingPool` contracts, initializes the DST contract, reads interval data from a JSON file, and configures the intervals for the DST contract.
+	•	Replace <network_name> with the target network (e.g., hardhat, sepolia, etc.).
 
-#### Command
+2. Update Token Address
 
-```bash
-npx hardhat deploy-novaro --mapping-name <json-file> --network <network-name>
-```
+This task updates the token addresses in the Community’s underlying contract.
 
-#### Example Usage
+Command syntax:
 
-```bash
-npx hardhat deploy-novaro --mapping-name dst_interval_config.json --network hardhat
-```
+npx hardhat updateTokenAddress --provider-address <provider_address>
 
-#### Parameters
+	•	Replace <provider_address> with the deployed TokenAddressProvider contract address.
 
-- `mapping-name`: The name of the JSON file containing interval data (located in the `config/mapping` folder).
-- `network`: The target network for deployment (e.g., `hardhat`, `ropsten`, etc.).
+Example:
 
-#### Output
+npx hardhat updateTokenAddress --provider-address 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853
 
-- The contract addresses are saved to a JSON file in the `deployments` directory, named according to the target network (e.g., `hardhat_addresses.json`).
-
-### Configure DST Intervals
-
-This task configures the intervals for the `DynamicSocialToken` (DST) contract by reading data from a specified JSON file.
-
-#### Command
-
-```bash
-npx hardhat read-dst-interval --dst-address <contract-address> --mapping-name <json-file>
-```
-
-#### Parameters
-
-- `dst-address`: The address of the deployed `DynamicSocialToken` contract.
-- `mapping-name`: The name of the JSON file containing interval data.
+This will update all token addresses specified in the JSON configuration file.

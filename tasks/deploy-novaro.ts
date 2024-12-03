@@ -1,14 +1,8 @@
 import { task } from "hardhat/config";
 import { ethers } from "hardhat";
-import { readIntervalsFromFile } from "../helpers/file-helper";
-import fs from "fs";
-import path from "path";
-
+import { fromJson,toJson } from "../helpers/file-helper";
+import { INTERVAL_CONFIG_PATH, DEPLOYMENT_ADDRESSES_PATH } from "../helpers/constants";
 task("deploy-novaro")
-  .addParam(
-    "mappingName",
-    "The name of the file suffixed with .json to pass to readInterval under config/mapping folder"
-  )
   .setAction(async (taskArgs, hre) => {
     //compile contracts
     await hre.run("compile");
@@ -44,8 +38,7 @@ task("deploy-novaro")
 
     //read interval for DynamicSocialToken
     await hre.run("read-dst-interval", {
-      dstAddress: dynamicSocialToken.target,
-      mappingName: taskArgs.mappingName,
+      dstAddress: dynamicSocialToken.target
     });
 
     //deploy mock social oracle
@@ -71,6 +64,14 @@ task("deploy-novaro")
     const novaroClient = await NovaroClient.deploy(mockLiquidityPool.target);
     console.log("NovaroClient deployed to:", novaroClient.target);
 
+    //deploy TokenAddressProvider
+    const TokenAddressProvider = await ethers.getContractFactory(
+      "TokenAddressProvider",
+      deployer
+    );
+    const tokenAddressProvider = await TokenAddressProvider.deploy();
+    console.log("TokenAddressProvider deployed to:", tokenAddressProvider.target);
+
     // set feeder address for DynamicSocialToken
     await dynamicSocialToken.setFeeder(novaroClient.target);
     console.log("Feeder address set for DynamicSocialToken");
@@ -93,23 +94,18 @@ task("deploy-novaro")
         MockSocialOracle: mockSocialOracle.target,
         DynamicSocialToken: dynamicSocialToken.target,
         NovaroClient: novaroClient.target,
+        TokenAddressProvider: tokenAddressProvider.target,
         AccountFactory: accountFactory.target,
         AccountRegistry: accountRegistry.target,
       },
     };
-    const filePath = path.join(
-      __dirname,
-      `../deployments/${network.name}_addresses.json`
-    );
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, JSON.stringify(addresses, null, 2));
-
+    const filePath = DEPLOYMENT_ADDRESSES_PATH + network.name + "_addresses.json";
+    toJson(filePath, addresses);
     console.log(`Contract addresses saved to ${filePath}`);
   });
 
 task("read-dst-interval", "Configures intervals for DynamicSocialToken")
   .addParam("dstAddress", "The address of the DynamicSocialToken contract")
-  .addParam("mappingName", "The name of the mapping to pass to readInterval")
   .setAction(async (taskArgs, hre) => {
     const { dstAddress, mappingName } = taskArgs;
 
@@ -122,7 +118,7 @@ task("read-dst-interval", "Configures intervals for DynamicSocialToken")
     const dynamicSocialToken = DynamicSocialToken.attach(dstAddress);
 
     try {
-      const intervals = readIntervalsFromFile(mappingName);
+      const intervals = fromJson(INTERVAL_CONFIG_PATH);
       await dynamicSocialToken.readInterval(intervals);
     } catch (error) {
       console.error("Error calling readInterval:", error);
@@ -131,4 +127,4 @@ task("read-dst-interval", "Configures intervals for DynamicSocialToken")
   });
 
 // Example usage:
-//npx hardhat deploy-novaro --mapping-name dst_interval_config.json --network hardhat
+//npx hardhat deploy-novaro --network hardhat
