@@ -85,6 +85,9 @@ task("deploy-novaro")
     //set social oracle address for client
     await novaroClient.setSocialOracle(mockSocialOracle.target)
 
+    //set token address provider for client
+    await novaroClient.setTokenAddressProvider(tokenAddressProvider.target)
+
     // save contract addresses to file
     const addresses = {
       network: network.name,

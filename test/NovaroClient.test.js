@@ -6,12 +6,14 @@ const { INTERVAL_CONFIG_PATH } = require("../helpers/constants");
 
 describe("NovaroClient", function () {
   let novaroClient, owner, addr1, dst;
-  let tokenId, salt, initData;
+  let tokenId, salt, initData, chainId;
   let registryFactory, accountFactory;
   let preComputedAddress;
+  let tokenAddressProvider;
   let intervals;
   let poolMocker;
   let initialExp = 0;
+  let usdtAddress = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
 
   beforeEach(async function () {
     [owner, addr1] = await ethers.getSigners();
@@ -45,64 +47,49 @@ describe("NovaroClient", function () {
     // Deploy Account contract
     const ERC6551Account = await ethers.getContractFactory("ERC6551Account");
     accountFactory = await ERC6551Account.deploy();
-    const chainId = await hre.network.provider.send('eth_chainId');
+    chainId = await hre.network.provider.send('eth_chainId');
     // Compute the pre-computed address of the account with Create2
     preComputedAddress = await registryFactory.account(accountFactory.target, chainId, dst.target, tokenId, salt);
     // Create an account
     await novaroClient.connect(addr1).createOrFetchAccount(accountFactory.target, chainId, dst.target, tokenId, salt, initData);
     const boundAccount = await novaroClient.getBoundAccount(addr1);
     expect(boundAccount).to.equal(preComputedAddress);
+
+    //deploy the token address provider and set the USDT address
+    const TokenAddressProvider = await ethers.getContractFactory("TokenAddressProvider");
+    tokenAddressProvider = await TokenAddressProvider.deploy();
+    await tokenAddressProvider.setTokenAddress("USDT", usdtAddress);
+    await novaroClient.setTokenAddressProvider(tokenAddressProvider.target);
   });
 
+  it("should deploy a community token successfully", async function () {
+    const underlyingAssetSymbol = "USDT";
+    const shareTokenName = "Share Token";
+    const shareTokenSymbol = "STKN";
+    const communityName = "Test Community";
+    const communityDescription = "A test community description";
+    const communitySourceId = "source123";
 
-//  it("Should create a FollowerPassToken successfully", async function () {
-//    //address1 creates a follower pass token
-//    const name = "FollowerPass";
-//    const symbol = "FP";
-//    const sourceId = "15323";
-//    const description = "A test follower pass token";
-//
-//    // Call createFollowerPassToken from owner account
-//    await expect(
-//      novaroClient.connect(addr1).createFollowerPassToken(name, symbol, sourceId, description)
-//    )
-//      .to.emit(novaroClient, "CreateFollowerPassToken")
-//      .withArgs(addr1.address, preComputedAddress, symbol, name, sourceId, description);
-//
-//    const tokens = await novaroClient.getTokenAddresses();
-//    const token = tokens[0];
-//    const FollowerPassToken = await hre.ethers.getContractFactory(
-//      "FollowerPassToken"
-//    );
-//
-//    const followerPassToken = FollowerPassToken.attach(token);
-//    const sellAmount = 10n ** 18n;
-//    //===================== Sell operation ========================
-//    //balance before sell
-//    const sellerBalance = await followerPassToken.balanceOf(preComputedAddress);
-//    const poolBalance = await followerPassToken.balanceOf(poolMocker.target);
-//    expect(sellerBalance).to.equal(sellAmount);
-//    expect(poolBalance).to.equal(0);
-//
-//    //approve pool for spending
-//    await followerPassToken.connect(addr1).approve(preComputedAddress, sellAmount);
-//    await followerPassToken.connect(addr1).approve(addr1.address, sellAmount);
-//    await followerPassToken.connect(addr1).approve(poolMocker.target, sellAmount);
-//
-//    //sell operation
-//    await followerPassToken.connect(addr1).sell(poolMocker.target, sellAmount);
-//
-//    //balance after sell
-//    const sellerBalanceAfter = await followerPassToken.balanceOf(addr1);
-//    const poolBalanceAfter = await followerPassToken.balanceOf(poolMocker.target);
-//    expect(sellerBalanceAfter).to.equal(0);
-//    expect(poolBalanceAfter).to.equal(sellAmount);
-//    //===================== Buy operation ===================================
-//    const ethValue = ethers.parseUnits("1", "ether");
-//    const amountToBuy = ethers.parseUnits("100", 18);
-//    const initialPoolBalance = await ethers.provider.getBalance(poolMocker.target);
-//    await followerPassToken.connect(addr1).buy(poolMocker.target, amountToBuy, { value: ethValue });
-//    const finalPoolBalance = await ethers.provider.getBalance(poolMocker.target);
-//    expect(finalPoolBalance).to.equal(ethValue);
-//  });
+    await novaroClient.deployCommunityToken(
+      chainId,
+      underlyingAssetSymbol,
+      shareTokenName,
+      shareTokenSymbol,
+      communityName,
+      communityDescription,
+      communitySourceId
+    );
+
+    const communities = await novaroClient.getCommunities();
+    expect(communities.length).to.equal(1);
+    const community = communities[0];
+    expect(community.admin).to.equal(owner.address);
+    expect(community.chainId).to.equal(chainId);
+    expect(community.underlying_token_address).to.equal(usdtAddress);
+    expect(community.community_name).to.equal(communityName);
+
+    const communityToken = community.community_token;
+    console.log(communityToken);
+
+  });
 });

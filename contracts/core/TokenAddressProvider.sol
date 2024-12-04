@@ -6,6 +6,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract TokenAddressProvider is ITokenAddressProvider, Ownable(msg.sender) {
 
+    //underlying token symbol => token address
     mapping(string => address) public tokenAddresses;
 
     function setTokenAddress(string memory _tokenSymbol, address _tokenAddress) external onlyOwner {

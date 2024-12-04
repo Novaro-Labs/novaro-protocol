@@ -6,6 +6,7 @@ import "../tokens/DynamicSocialToken.sol";
 import "./NovaroDataTypes.sol";
 import "../interfaces/ISocialOracle.sol";
 import {FollowerPassCommunity} from "../tokens/FollowerPassCommunity.sol";
+import {ITokenAddressProvider} from "../interfaces/ITokenAddressProvider.sol";
 
 library NovaroStorage {
 
@@ -13,7 +14,7 @@ library NovaroStorage {
 
     struct ClientStorage {
         NovaroDataTypes.FollowerPassTokenData[] tokens;
-        FollowerPassCommunity[] communities;
+        NovaroDataTypes.CommunityTokenData[] communities;
         //onchain data for follower pass tokens with community mapping
         mapping(address => NovaroDataTypes.FollowerPassTokenData) tokenDataMapping;
         //system identifiers for each account
@@ -26,6 +27,7 @@ library NovaroStorage {
         DynamicSocialToken dst;
         ERC6551Registry  registry;
         ISocialOracle socialOracle;
+        ITokenAddressProvider tokenAddressProvider;
     }
 
     function _getClientStorage() public pure returns (ClientStorage storage clientStorage) {
