@@ -1,19 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {INovaroClient} from "./interfaces/INovaroClient.sol";
-import {NovaroErrors} from "./libraries/NovaroErrors.sol";
-import {NovaroDataTypes} from "./libraries/NovaroDataTypes.sol";
-import {NovaroEvents} from "./libraries/NovaroEvents.sol";
-import {FollowerPassToken} from "./tokens/FollowerPassToken.sol";
-import {ERC6551Registry} from "./account/ERC6551Registry.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {TokenAddressProvider} from "./core/TokenAddressProvider.sol";
 import {DynamicSocialToken} from "./tokens/DynamicSocialToken.sol";
-import {NovaroStorage} from "./libraries/NovaroStorage.sol";
-import {ISocialOracle} from"./interfaces/ISocialOracle.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {console} from "hardhat/console.sol";
+import {ERC6551Registry} from "./account/ERC6551Registry.sol";
 import {FollowerPassCommunity} from "./tokens/FollowerPassCommunity.sol";
+import {FollowerPassToken} from "./tokens/FollowerPassToken.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {INovaroClient} from "./interfaces/INovaroClient.sol";
+import {ITokenAddressProvider} from "./interfaces/ITokenAddressProvider.sol";
+import {ISocialOracle} from"./interfaces/ISocialOracle.sol";
+import {NovaroDataTypes} from "./libraries/NovaroDataTypes.sol";
+import {NovaroErrors} from "./libraries/NovaroErrors.sol";
+import {NovaroEvents} from "./libraries/NovaroEvents.sol";
+import {NovaroStorage} from "./libraries/NovaroStorage.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {console} from "hardhat/console.sol";
 
 contract NovaroClient is INovaroClient, Ownable(msg.sender){
 
@@ -40,6 +42,10 @@ contract NovaroClient is INovaroClient, Ownable(msg.sender){
 
     function setSocialOracle(address _socialOracle) onlyOwner external {
         _clientStorage.socialOracle = ISocialOracle(_socialOracle);
+    }
+
+    function setTokenAddressProvider(address _tokenAddressProvider) onlyOwner external {
+        _clientStorage.tokenAddressProvider = TokenAddressProvider(_tokenAddressProvider);
     }
 
     function offChainFeed() external {
@@ -97,11 +103,35 @@ contract NovaroClient is INovaroClient, Ownable(msg.sender){
     }
 
 
-    function createCommunityToken(
-        address underlying_asset,
+    function deployCommunityToken(
+        string calldata chain_id,
+        string calldata underlying_asset_symbol,
         string calldata share_token_name,
-        string calldata share_token_symbol
+        string calldata share_token_symbol,
+        string calldata community_name,
+        string calldata community_description,
+        string calldata community_source_id
     ) external returns (address){
+        ITokenAddressProvider tokenAddressProvider = _clientStorage.tokenAddressProvider;
+        address underlying_asset_address = tokenAddressProvider.getTokenAddress(underlying_asset_symbol);
+        require(underlying_asset_address!= address(0), "Invalid underlying asset symbol");
+        address communityToken = _createCommunity(underlying_asset_address, share_token_name, share_token_symbol);
+        NovaroDataTypes.CommunityTokenData memory communityTokenData = NovaroDataTypes.CommunityTokenData(
+            msg.sender,
+            chain_id,
+            underlying_asset_address,
+            community_name,
+            community_description,
+            community_source_id,
+            share_token_name,
+            share_token_symbol,
+         address(communityToken)
+        );
+        _clientStorage.communities.push(communityTokenData);
+        return address(communityToken);
+    }
+
+    function _createCommunity(address underlying_asset, string calldata share_token_name, string calldata share_token_symbol) internal returns (address) {
         FollowerPassCommunity followerPassCommunity = new FollowerPassCommunity(
             IERC20(underlying_asset),
             share_token_name,
@@ -111,7 +141,6 @@ contract NovaroClient is INovaroClient, Ownable(msg.sender){
             _clientStorage.tokenBoundAccounts[msg.sender],
             address (this)
         );
-        _clientStorage.communities.push(followerPassCommunity);
         emit NovaroEvents.CreateCommunityToken(msg.sender, followerPassCommunity);
         return address(followerPassCommunity);
     }
@@ -119,7 +148,6 @@ contract NovaroClient is INovaroClient, Ownable(msg.sender){
     function recordToken(address _community, NovaroDataTypes.FollowerPassTokenData memory _token) external {
         _clientStorage.tokenDataMapping[_community] = _token;
         _clientStorage.tokens.push(_token);
-        _clientStorage.communities.push(FollowerPassCommunity(_community));
     }
 
     //=========getter functions=========
@@ -128,8 +156,12 @@ contract NovaroClient is INovaroClient, Ownable(msg.sender){
         return _clientStorage.systemIdentifiers[_owner];
     }
 
-    function getCommunities() external view returns (FollowerPassCommunity[] memory) {
+    function getCommunities() external view returns (NovaroDataTypes.CommunityTokenData[] memory) {
         return _clientStorage.communities;
+    }
+
+    function getTokens() external view returns (NovaroDataTypes.FollowerPassTokenData[] memory) {
+        return _clientStorage.tokens;
     }
 
     function getCommunitiesCount() external view returns (uint256) {

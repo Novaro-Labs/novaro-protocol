@@ -18,6 +18,7 @@ const config: HardhatUserConfig = {
             enabled: true,
             runs: 200,
           },
+          viaIR: true,
         },
       },
     ],
@@ -27,6 +28,7 @@ const config: HardhatUserConfig = {
       chainId: 1337,
     },
     localhost: {
+    chainId: 1337,
       url: "http://127.0.0.1:8545",
     },
     sepolia: {

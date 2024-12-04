@@ -30,4 +30,16 @@ library NovaroDataTypes {
         string sourceId;
         string des;
     }
+
+    struct CommunityTokenData {
+        address admin;
+        string  chainId;
+        address underlying_token_address;
+        string community_name;
+        string community_description;
+        string community_logo_source_id;
+        string community_share_token_name;
+        string community_share_token_symbol;
+        address community_token;
+    }
 }
