@@ -35,6 +35,11 @@ const config: HardhatUserConfig = {
       url: process.env.ALCHEMY_SEPOLIA_API_KEY,
       accounts: [process.env.PRIVATE_DEPLOYER_KEY],
     },
+    bsctestnet: {
+      chainId: 97,
+      url: process.env.BSC_TESTNET_PUBLIC_API,
+      accounts: [process.env.PRIVATE_DEPLOYER_KEY],
+    }
   },
   gasReporter: {
     enabled: false,

@@ -35,12 +35,12 @@
       }
     ]
   },
-  "bsc_sepolia": {
+  "bsctestnet": {
     "chainid": 97,
     "tokens": [
       {
         "symbol": "USDT",
-        "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
+        "address": "0xa5E4cb9a9d5abf0d9318b54B44f141DC2Eff214d"
       }
     ]
   }
